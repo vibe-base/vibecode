@@ -11,13 +11,29 @@ data:
       admin off
       # Email for Let's Encrypt notifications
       email {{ .Values.caddy.email | default "admin@example.com" }}
+      # Set auto HTTPS to off for Kubernetes deployment
+      auto_https off
+      # Disable HTTP challenge for k3s
+      acme_http off
     }
 
     # Handle HTTP and HTTPS
-    :80, :443 {
-      # Enable automatic HTTPS
+    {{ if .Values.caddy.domain }}{{ .Values.caddy.domain }}{{ else }}:80, :443{{ end }} {
+      # TLS configuration
       tls {
+      {{- if .Values.caddy.tls.enabled }}
+        {{- if .Values.caddy.tls.selfSigned }}
+        # Use self-signed certificate for development
+        self_signed
+        {{- else if and .Values.caddy.tls.certFile .Values.caddy.tls.keyFile }}
+        # Use provided certificate and key
+        cert_file {{ .Values.caddy.tls.certFile }}
+        key_file {{ .Values.caddy.tls.keyFile }}
+        {{- else }}
+        # Use Let's Encrypt
         issuer acme
+        {{- end }}
+      {{- end }}
       }
 
       # Route to frontend

@@ -11,7 +11,7 @@ imagePullSecrets:
 
 # Caddy configuration
 caddy:
-  image: docker.io/library/caddy:latest
+  image: docker.io/gigahard/vibecode-caddy:latest
   pullPolicy: IfNotPresent
   ports:
     - 80
@@ -24,6 +24,13 @@ caddy:
       cpu: 100m
       memory: 128Mi
   email: "your-email@example.com"  # For Let's Encrypt notifications
+  domain: "vibecode.gigahard.ai"  # Your domain name
+  tls:
+    enabled: true
+    selfSigned: true  # Use self-signed certificates for development
+    # Set to false and provide certFile and keyFile for production
+    certFile: ""
+    keyFile: ""
   persistence:
     enabled: true
     size: 1Gi  # For storing certificates
