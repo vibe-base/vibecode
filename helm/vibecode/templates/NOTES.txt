@@ -7,11 +7,11 @@ To learn more about the release, try:
   $ helm status {{ .Release.Name }}
   $ helm get all {{ .Release.Name }}
 
-{{- if .Values.longhorn.enabled }}
-Longhorn has been installed in the {{ .Values.longhorn.namespace }} namespace.
+{{- if .Values.longhorn.useExisting }}
+This deployment is using the existing Longhorn StorageClass "{{ .Values.longhorn.storageClass }}".
 To access the Longhorn UI:
 
-  $ kubectl port-forward -n {{ .Values.longhorn.namespace }} svc/longhorn-frontend 8000:80
+  $ kubectl port-forward -n longhorn-system svc/longhorn-frontend 8000:80
 
 Then access http://localhost:8000 in your browser.
 {{- end }}

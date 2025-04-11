@@ -10,7 +10,7 @@ caddy:
   persistence:
     enabled: true
     size: 1Gi
-    storageClass: "longhorn"  # Use Longhorn StorageClass
+    storageClass: "longhorn"  # Use existing Longhorn StorageClass
 
 # Service configuration
 service:
@@ -40,13 +40,9 @@ certManager:
 
 # Longhorn configuration
 longhorn:
-  enabled: true  # Enable Longhorn installation
-  namespace: longhorn-system
-  createNamespace: true
-  persistence:
-    defaultClass: true
-    reclaimPolicy: Delete
-    defaultClassReplicaCount: 3
+  enabled: false  # Disable Longhorn installation since it's already installed
+  useExisting: true  # Use existing Longhorn installation
+  storageClass: "longhorn"  # Name of the existing StorageClass
 
 # GitHub OAuth configuration (update with your values)
 github:

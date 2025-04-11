@@ -8,6 +8,7 @@ This guide explains how to deploy VibeCode to a Kubernetes cluster using Helm.
 - Helm 3.x installed
 - kubectl configured to access your cluster
 - A domain name pointing to your cluster's IP address
+- Longhorn already installed in the cluster
 
 ## Deployment Steps
 
@@ -31,13 +32,7 @@ kubectl get svc -n vibecode
 kubectl get ingress -n vibecode
 ```
 
-4. Wait for Longhorn to be ready:
-
-```bash
-kubectl get pods -n longhorn-system
-```
-
-5. Access the Longhorn UI:
+4. Access the Longhorn UI:
 
 ```bash
 kubectl port-forward -n longhorn-system svc/longhorn-frontend 8000:80
