@@ -1,11 +1,9 @@
-# Caddy Service (main entry point)
 apiVersion: v1
 kind: Service
 metadata:
   name: caddy
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}
-    app: caddy
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -13,22 +11,16 @@ spec:
       targetPort: 80
       protocol: TCP
       name: http
-    - port: 443
-      targetPort: 443
-      protocol: TCP
-      name: https
   selector:
-    app: caddy
-    {{- include "vibecode.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/name: caddy
+    app.kubernetes.io/instance: {{ .Release.Name }}
 ---
-# Frontend Service
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}
-    app: frontend
 spec:
   type: ClusterIP
   ports:
@@ -37,17 +29,15 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: frontend
-    {{- include "vibecode.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/instance: {{ .Release.Name }}
 ---
-# Express Service
 apiVersion: v1
 kind: Service
 metadata:
   name: express
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}
-    app: express
 spec:
   type: ClusterIP
   ports:
@@ -56,17 +46,15 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: express
-    {{- include "vibecode.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/name: express
+    app.kubernetes.io/instance: {{ .Release.Name }}
 ---
-# FastAPI Service
 apiVersion: v1
 kind: Service
 metadata:
   name: fastapi
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}
-    app: fastapi
 spec:
   type: ClusterIP
   ports:
@@ -75,5 +63,5 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: fastapi
-    {{- include "vibecode.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/name: fastapi
+    app.kubernetes.io/instance: {{ .Release.Name }}
