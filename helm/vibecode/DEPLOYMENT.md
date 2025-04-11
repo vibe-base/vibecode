@@ -40,18 +40,7 @@ helm upgrade --install vibecode ./vibecode -f values-production.yaml
 ```bash
 kubectl get pods
 kubectl get svc
-```
-
-6. Check if the Traefik IngressRoute was created:
-
-```bash
-kubectl get ingressroute
-```
-
-7. Check the Traefik logs to see if it's handling your domain:
-
-```bash
-kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
+kubectl get ingress
 ```
 
 ## Troubleshooting
@@ -67,17 +56,11 @@ If you're having certificate issues:
 kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
 ```
 
-3. Check if the Traefik IngressRoute was created:
+3. Check if the Ingress was created:
 
 ```bash
-kubectl get ingressroute
-kubectl describe ingressroute vibecode-route
-```
-
-4. Check if Traefik can access the ACME server:
-
-```bash
-kubectl exec -it -n kube-system $(kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik -o name) -- cat /data/acme.json
+kubectl get ingress
+kubectl describe ingress vibecode-ingress
 ```
 
 ### Persistent Volume Issues

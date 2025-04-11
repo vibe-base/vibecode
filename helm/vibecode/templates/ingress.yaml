@@ -1,74 +1,31 @@
 {{- if .Values.ingress.enabled -}}
-{{- $fullName := include "vibecode.fullname" . -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: vibecode-ingress
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: "traefik"
-    {{- if and .Values.certManager.enabled (.Capabilities.APIVersions.Has "cert-manager.io/v1/ClusterIssuer") }}
-    cert-manager.io/cluster-issuer: {{ .Values.certManager.issuer.name }}
-    {{- end }}
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if or .Values.ingress.tls (and .Values.certManager.enabled (.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate")) }}
   tls:
-    {{- if and .Values.certManager.enabled (.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate") }}
-    - hosts:
-        - {{ .Values.certManager.certificate.domain }}
-      secretName: {{ .Values.certManager.certificate.secretName }}
-    {{- end }}
-    {{- range .Values.ingress.tls }}
-    - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
-        {{- end }}
-      secretName: {{ .secretName }}
-    {{- end }}
-  {{- end }}
+  - hosts:
+    - {{ .Values.certManager.certificate.domain }}
+    secretName: {{ .Values.certManager.certificate.secretName }}
   rules:
-    {{- if .Values.certManager.enabled }}
-    - host: {{ .Values.certManager.certificate.domain }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: frontend
-                port:
-                  number: {{ .Values.frontend.port }}
-          - path: /api/express
-            pathType: Prefix
-            backend:
-              service:
-                name: express
-                port:
-                  number: {{ .Values.express.port }}
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: fastapi
-                port:
-                  number: {{ .Values.fastapi.port }}
-    {{- end }}
-    {{- range .Values.ingress.hosts }}
-    - host: {{ .host | quote }}
-      http:
-        paths:
-          {{- range .paths }}
-          - path: {{ .path }}
-            pathType: {{ .pathType }}
-            backend:
-              service:
-                name: frontend
-                port:
-                  number: {{ $.Values.frontend.port }}
-          {{- end }}
-    {{- end }}
+  - host: {{ .Values.certManager.certificate.domain }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: caddy
+            port:
+              number: 80
 {{- end }}

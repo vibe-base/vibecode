@@ -1,21 +1,2 @@
-apiVersion: helm.cattle.io/v1
-kind: HelmChartConfig
-metadata:
-  name: traefik
-  namespace: kube-system
-spec:
-  valuesContent: |-
-    additionalArguments:
-      - "--log.level=DEBUG"
-      - "--certificatesresolvers.letsencrypt.acme.email={{ .Values.certManager.issuer.email }}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.caserver={{ .Values.certManager.issuer.server }}"
-    
-    ports:
-      web:
-        redirectTo: websecure
-      
-    ingressRoute:
-      dashboard:
-        enabled: true
+# This file is intentionally empty as we're using standard Kubernetes Ingress instead
+# and relying on the default Traefik configuration in k3s

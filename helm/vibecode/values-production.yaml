@@ -14,11 +14,15 @@ service:
   ports:
     http: 80
 
-# Disable ingress since we're using Traefik IngressRoute
+# Enable ingress for standard Kubernetes Ingress
 ingress:
-  enabled: false
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
 
-# Cert-Manager configuration (using Traefik's built-in ACME support)
+# Cert-Manager configuration
 certManager:
   enabled: true
   issuer:

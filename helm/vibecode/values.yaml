@@ -86,10 +86,13 @@ service:
   ports:
     http: 80
 
-# Ingress configuration (disabled in favor of Traefik IngressRoute)
+# Ingress configuration
 ingress:
-  enabled: false
-  annotations: {}
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
   hosts:
     - host: vibecode.local
       paths:
@@ -97,7 +100,7 @@ ingress:
           pathType: Prefix
   tls: []
 
-# Cert-Manager configuration (now using Traefik's built-in ACME support)
+# Cert-Manager configuration
 certManager:
   enabled: true
   issuer:
