@@ -11,10 +11,10 @@ data:
       admin off
       # Email for Let's Encrypt notifications
       email {{ .Values.caddy.email | default "admin@example.com" }}
-      # Enable automatic HTTPS for production
-      auto_https on
-      # Enable HTTP challenge for Let's Encrypt
-      acme_http on
+      # Disable automatic HTTPS since Traefik will handle it
+      auto_https off
+      # Disable HTTP challenge for k3s
+      acme_http off
       # Trust the proxy protocol
       servers {
         protocol {
@@ -23,25 +23,8 @@ data:
       }
     }
 
-    # Handle HTTP and HTTPS
-    {{ if .Values.caddy.domain }}{{ .Values.caddy.domain }}{{ else }}:80, :443{{ end }} {
-      # TLS configuration
-      tls {
-      {{- if .Values.caddy.tls.enabled }}
-        {{- if .Values.caddy.tls.selfSigned }}
-        # Use self-signed certificate for development
-        self_signed
-        {{- else if and .Values.caddy.tls.certFile .Values.caddy.tls.keyFile }}
-        # Use provided certificate and key
-        cert_file {{ .Values.caddy.tls.certFile }}
-        key_file {{ .Values.caddy.tls.keyFile }}
-        {{- else }}
-        # Use Let's Encrypt
-        issuer acme
-        {{- end }}
-      {{- end }}
-      }
-
+    # Handle HTTP only since Traefik will handle HTTPS
+    :80 {
       # Route to frontend
       handle_path / {
         reverse_proxy frontend:{{ .Values.frontend.port }}

@@ -87,21 +87,35 @@ environment:
 
 # Service configuration
 service:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
     http: 80
     https: 443
 
 # Ingress configuration
 ingress:
-  enabled: false
-  annotations: {}
+  enabled: true
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
   hosts:
-    - host: vibecode.local
+    - host: vibecode.gigahard.ai
       paths:
         - path: /
           pathType: Prefix
   tls: []
+
+# Cert-Manager configuration
+certManager:
+  enabled: true
+  issuer:
+    name: letsencrypt-prod
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: "your-email@example.com"  # Update with your email
+  certificate:
+    name: vibecode-tls
+    secretName: vibecode-tls
+    domain: vibecode.gigahard.ai
 
 # Node selection
 nodeSelector: {}

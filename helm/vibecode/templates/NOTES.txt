@@ -1,0 +1,36 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  $ helm status {{ .Release.Name }}
+  $ helm get all {{ .Release.Name }}
+
+{{- if .Values.certManager.enabled }}
+Certificate management is enabled with cert-manager.
+A ClusterIssuer named {{ .Values.certManager.issuer.name }} has been created.
+A Certificate named {{ .Values.certManager.certificate.name }} has been requested for {{ .Values.certManager.certificate.domain }}.
+
+To check the status of your certificate:
+  $ kubectl get certificate {{ .Values.certManager.certificate.name }}
+  $ kubectl get certificaterequest
+  $ kubectl get order
+  $ kubectl get challenge
+{{- end }}
+
+{{- if .Values.ingress.enabled }}
+Your application should be available at:
+  https://{{ .Values.certManager.certificate.domain }}
+{{- else }}
+Your application is not exposed via Ingress. To access it, you need to:
+  $ kubectl port-forward svc/caddy 8080:80
+Then access http://localhost:8080 in your browser.
+{{- end }}
+
+{{- if .Values.longhorn.enabled }}
+Longhorn is enabled for persistent storage.
+To access the Longhorn UI:
+  $ kubectl port-forward -n longhorn-system svc/longhorn-frontend 8000:80
+Then access http://localhost:8000 in your browser.
+{{- end }}

@@ -6,19 +6,31 @@ caddy:
   email: "your-actual-email@example.com"  # Update with your email for Let's Encrypt
   domain: "vibecode.gigahard.ai"
   tls:
-    enabled: true
-    selfSigned: false  # Use Let's Encrypt for production
+    enabled: false  # Disable Caddy TLS since Traefik will handle it
 
 # Service configuration
 service:
-  type: LoadBalancer
-  ports:
-    http: 80
-    https: 443
+  type: ClusterIP  # Use ClusterIP since we're using Traefik ingress
 
-# Disable ingress since we're using Caddy directly
+# Ingress configuration
 ingress:
-  enabled: false
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+
+# Cert-Manager configuration
+certManager:
+  enabled: true
+  issuer:
+    name: letsencrypt-prod
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: "your-actual-email@example.com"  # Update with your email
+  certificate:
+    name: vibecode-tls
+    secretName: vibecode-tls
+    domain: vibecode.gigahard.ai
 
 # Longhorn configuration
 longhorn:
