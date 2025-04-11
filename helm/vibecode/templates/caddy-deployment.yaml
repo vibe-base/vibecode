@@ -55,7 +55,12 @@ spec:
           configMap:
             name: caddy-config
         - name: caddy-data
+          {{- if .Values.caddy.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: caddy-data
+          {{- else }}
           emptyDir: {}
+          {{- end }}
         - name: caddy-config-dir
           emptyDir: {}
       {{- with .Values.nodeSelector }}

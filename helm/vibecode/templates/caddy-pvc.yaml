@@ -1,0 +1,14 @@
+{{- if .Values.caddy.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: caddy-data
+  labels:
+    {{- include "vibecode.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.caddy.persistence.size }}
+{{- end }}

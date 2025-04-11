@@ -19,6 +19,10 @@ caddy:
     requests:
       cpu: 100m
       memory: 128Mi
+  email: "your-email@example.com"  # For Let's Encrypt notifications
+  persistence:
+    enabled: true
+    size: 1Gi  # For storing certificates
 
 # Frontend configuration
 frontend:
@@ -72,7 +76,10 @@ environment:
 
 # Service configuration
 service:
-  type: ClusterIP
+  type: LoadBalancer
+  ports:
+    http: 80
+    https: 443
 
 # Ingress configuration
 ingress:

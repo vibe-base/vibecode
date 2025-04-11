@@ -9,12 +9,16 @@ data:
     {
       # Global options
       admin off
+      # Email for Let's Encrypt notifications
+      email {{ .Values.caddy.email | default "admin@example.com" }}
     }
 
     # Handle HTTP and HTTPS
     :80, :443 {
-      # Automatic HTTPS (uncomment for production)
-      # tls internal
+      # Enable automatic HTTPS
+      tls {
+        issuer acme
+      }
 
       # Route to frontend
       handle_path / {
