@@ -8,13 +8,15 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: caddy
+      app: caddy
       app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: vibecode
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: caddy
+        app: caddy
         app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: vibecode
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -58,13 +60,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: frontend
       app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: frontend
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: frontend
         app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: frontend
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -91,13 +93,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: express
       app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: express
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: express
         app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: express
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -124,13 +126,13 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: fastapi
       app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: fastapi
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: fastapi
         app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/name: fastapi
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
