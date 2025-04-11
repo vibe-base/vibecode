@@ -5,6 +5,10 @@
 nameOverride: ""
 fullnameOverride: ""
 
+# Image pull secrets
+imagePullSecrets:
+  - name: regcred
+
 # Caddy configuration
 caddy:
   image: docker.io/library/caddy:latest

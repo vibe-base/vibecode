@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vibecode-traefik-ingress
+  labels:
+    {{- include "vibecode.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: {{ .Values.frontend.port }}
+      - path: /api/express
+        pathType: Prefix
+        backend:
+          service:
+            name: express
+            port:
+              number: {{ .Values.express.port }}
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: fastapi
+            port:
+              number: {{ .Values.fastapi.port }}
