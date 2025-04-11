@@ -11,10 +11,16 @@ data:
       admin off
       # Email for Let's Encrypt notifications
       email {{ .Values.caddy.email | default "admin@example.com" }}
-      # Set auto HTTPS to off for Kubernetes deployment
-      auto_https off
-      # Disable HTTP challenge for k3s
-      acme_http off
+      # Enable automatic HTTPS for production
+      auto_https on
+      # Enable HTTP challenge for Let's Encrypt
+      acme_http on
+      # Trust the proxy protocol
+      servers {
+        protocol {
+          allow_h2c
+        }
+      }
     }
 
     # Handle HTTP and HTTPS

@@ -27,7 +27,7 @@ caddy:
   domain: "vibecode.gigahard.ai"  # Your domain name
   tls:
     enabled: true
-    selfSigned: true  # Use self-signed certificates for development
+    selfSigned: false  # Use Let's Encrypt for production
     # Set to false and provide certFile and keyFile for production
     certFile: ""
     keyFile: ""

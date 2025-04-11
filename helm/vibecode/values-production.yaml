@@ -1,0 +1,38 @@
+# Production values for VibeCode
+
+# Caddy configuration
+caddy:
+  image: docker.io/gigahard/vibecode-caddy:latest
+  email: "your-actual-email@example.com"  # Update with your email for Let's Encrypt
+  domain: "vibecode.gigahard.ai"
+  tls:
+    enabled: true
+    selfSigned: false  # Use Let's Encrypt for production
+
+# Service configuration
+service:
+  type: LoadBalancer
+  ports:
+    http: 80
+    https: 443
+
+# Disable ingress since we're using Caddy directly
+ingress:
+  enabled: false
+
+# Longhorn configuration
+longhorn:
+  enabled: true
+  storageClass:
+    name: "longhorn"
+    isDefault: true
+
+# GitHub OAuth configuration (update with your values)
+github:
+  clientId: ""
+  clientSecret: ""
+  redirectUri: "https://vibecode.gigahard.ai/auth/callback"
+
+# Environment configuration
+environment:
+  name: production

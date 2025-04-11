@@ -1,0 +1,55 @@
+# Custom values for VibeCode deployment
+
+# Caddy configuration
+caddy:
+  email: "your-email@example.com"  # Update with your email
+  domain: "vibecode.gigahard.ai"
+  tls:
+    enabled: true
+    selfSigned: false  # Use Let's Encrypt with Traefik
+
+# Service configuration
+service:
+  type: ClusterIP  # Use ClusterIP since we're using Traefik ingress
+
+# Ingress configuration
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: vibecode.gigahard.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: vibecode-tls
+      hosts:
+        - vibecode.gigahard.ai
+
+# Longhorn configuration
+longhorn:
+  enabled: true
+  storageClass:
+    name: "longhorn"
+    isDefault: true
+    reclaimPolicy: Delete
+    volumeBindingMode: Immediate
+    allowVolumeExpansion: true
+    parameters:
+      numberOfReplicas: "3"
+      staleReplicaTimeout: "30"
+      fsType: "ext4"
+
+# GitHub OAuth configuration (update with your values)
+github:
+  clientId: ""
+  clientSecret: ""
+  redirectUri: "https://vibecode.gigahard.ai/auth/callback"
+
+# Environment configuration
+environment:
+  name: production
