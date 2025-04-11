@@ -10,3 +10,9 @@ keywords:
   - ai
 maintainers:
   - name: VibeCode Team
+
+dependencies:
+  - name: longhorn
+    version: 1.5.1
+    repository: https://charts.longhorn.io
+    condition: longhorn.enabled

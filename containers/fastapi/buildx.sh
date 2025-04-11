@@ -13,10 +13,10 @@ fi
 docker buildx inspect --bootstrap
 
 # Build the Docker image with multi-architecture support
-echo "Building Caddy Docker image for multiple architectures (amd64, arm64)..."
+echo "Building FastAPI Docker image for multiple architectures (amd64, arm64)..."
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  --tag gigahard/vibecode-caddy:latest \
+  --tag gigahard/vibecode-fastapi:latest \
   --push \
   .
 

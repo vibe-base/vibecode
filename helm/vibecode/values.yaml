@@ -100,3 +100,17 @@ ingress:
 nodeSelector: {}
 tolerations: []
 affinity: {}
+
+# Longhorn configuration
+longhorn:
+  enabled: true
+  storageClass:
+    name: "longhorn"
+    isDefault: true
+    reclaimPolicy: Delete
+    volumeBindingMode: Immediate
+    allowVolumeExpansion: true
+    parameters:
+      numberOfReplicas: "3"
+      staleReplicaTimeout: "30"
+      fsType: "ext4"
