@@ -7,28 +7,21 @@ To learn more about the release, try:
   $ helm status {{ .Release.Name }}
   $ helm get all {{ .Release.Name }}
 
+{{- if .Values.longhorn.enabled }}
+Longhorn has been installed in the {{ .Values.longhorn.namespace }} namespace.
+To access the Longhorn UI:
+
+  $ kubectl port-forward -n {{ .Values.longhorn.namespace }} svc/longhorn-frontend 8000:80
+
+Then access http://localhost:8000 in your browser.
+{{- end }}
+
 {{- if .Values.certManager.enabled }}
-{{- if .Capabilities.APIVersions.Has "cert-manager.io/v1/ClusterIssuer" }}
-Certificate management is enabled with cert-manager.
-A ClusterIssuer named {{ .Values.certManager.issuer.name }} has been created.
+Certificate management is enabled.
 A Certificate named {{ .Values.certManager.certificate.name }} has been requested for {{ .Values.certManager.certificate.domain }}.
 
 To check the status of your certificate:
   $ kubectl get certificate {{ .Values.certManager.certificate.name }}
-  $ kubectl get certificaterequest
-  $ kubectl get order
-  $ kubectl get challenge
-{{- else }}
-WARNING: cert-manager CRDs are not installed in your cluster.
-Please install cert-manager first:
-
-  $ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
-  $ kubectl -n cert-manager wait --for=condition=ready pod --all --timeout=300s
-
-Then upgrade your release:
-
-  $ helm upgrade {{ .Release.Name }} .
-{{- end }}
 {{- end }}
 
 {{- if .Values.ingress.enabled }}
@@ -38,11 +31,4 @@ Your application should be available at:
 Your application is not exposed via Ingress. To access it, you need to:
   $ kubectl port-forward svc/caddy 8080:80
 Then access http://localhost:8080 in your browser.
-{{- end }}
-
-{{- if .Values.longhorn.enabled }}
-Longhorn is enabled for persistent storage.
-To access the Longhorn UI:
-  $ kubectl port-forward -n longhorn-system svc/longhorn-frontend 8000:80
-Then access http://localhost:8000 in your browser.
 {{- end }}

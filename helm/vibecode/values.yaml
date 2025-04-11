@@ -29,7 +29,7 @@ caddy:
   persistence:
     enabled: true
     size: 1Gi  # For storing certificates
-    storageClass: "longhorn"  # Use existing Longhorn StorageClass
+    storageClass: "longhorn"  # Use Longhorn StorageClass
 
 # Frontend configuration
 frontend:
@@ -120,7 +120,10 @@ affinity: {}
 
 # Longhorn configuration
 longhorn:
-  enabled: false  # Disable creating a new StorageClass
-  useExisting: true  # Use existing StorageClass
-  storageClass:
-    name: "longhorn"
+  enabled: true  # Enable Longhorn installation
+  namespace: longhorn-system
+  createNamespace: true
+  persistence:
+    defaultClass: true
+    reclaimPolicy: Delete
+    defaultClassReplicaCount: 3

@@ -11,37 +11,39 @@ This guide explains how to deploy VibeCode to a Kubernetes cluster using Helm.
 
 ## Deployment Steps
 
-1. Install Longhorn for persistent storage (if not already installed):
-
-```bash
-kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.5.1/deploy/longhorn.yaml
-```
-
-2. Wait for Longhorn to be ready:
-
-```bash
-kubectl -n longhorn-system wait --for=condition=ready pod --all --timeout=300s
-```
-
-3. Update the values-production.yaml file with your specific settings:
+1. Update the values-production.yaml file with your specific settings:
    - Update the email address for Let's Encrypt notifications
    - Update your domain name
    - Add your GitHub OAuth credentials
 
-4. Deploy VibeCode using Helm:
+2. Deploy VibeCode using Helm:
 
 ```bash
 # From the helm directory
-helm upgrade --install vibecode ./vibecode -f values-production.yaml
+helm install vibecode ./vibecode -n vibecode --create-namespace -f values-production.yaml
 ```
 
-5. Check the status of your deployment:
+3. Check the status of your deployment:
 
 ```bash
-kubectl get pods
-kubectl get svc
-kubectl get ingress
+kubectl get pods -n vibecode
+kubectl get svc -n vibecode
+kubectl get ingress -n vibecode
 ```
+
+4. Wait for Longhorn to be ready:
+
+```bash
+kubectl get pods -n longhorn-system
+```
+
+5. Access the Longhorn UI:
+
+```bash
+kubectl port-forward -n longhorn-system svc/longhorn-frontend 8000:80
+```
+
+Then access http://localhost:8000 in your browser.
 
 ## Troubleshooting
 
@@ -59,8 +61,8 @@ kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
 3. Check if the Ingress was created:
 
 ```bash
-kubectl get ingress
-kubectl describe ingress vibecode-ingress
+kubectl get ingress -n vibecode
+kubectl describe ingress vibecode-ingress -n vibecode
 ```
 
 ### Persistent Volume Issues
@@ -70,13 +72,13 @@ If you're having issues with persistent volumes:
 1. Check the status of Longhorn:
 
 ```bash
-kubectl -n longhorn-system get pods
+kubectl get pods -n longhorn-system
 ```
 
 2. Check the status of your PVCs:
 
 ```bash
-kubectl get pvc
+kubectl get pvc -n vibecode
 ```
 
 ## Accessing the Application
@@ -95,5 +97,5 @@ To update your deployment:
 2. Run the Helm upgrade command:
 
 ```bash
-helm upgrade vibecode ./vibecode -f values-production.yaml
+helm upgrade vibecode ./vibecode -n vibecode -f values-production.yaml
 ```

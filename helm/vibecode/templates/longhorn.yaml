@@ -1,0 +1,207 @@
+{{- if .Values.longhorn.enabled }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.longhorn.namespace }}
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: longhorn
+  annotations:
+    {{- if .Values.longhorn.persistence.defaultClass }}
+    storageclass.kubernetes.io/is-default-class: "true"
+    {{- end }}
+provisioner: driver.longhorn.io
+allowVolumeExpansion: true
+parameters:
+  numberOfReplicas: "{{ .Values.longhorn.persistence.defaultClassReplicaCount }}"
+  staleReplicaTimeout: "30"
+  fromBackup: ""
+reclaimPolicy: {{ .Values.longhorn.persistence.reclaimPolicy }}
+volumeBindingMode: Immediate
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: longhorn-service-account
+  namespace: {{ .Values.longhorn.namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: longhorn-role
+rules:
+- apiGroups: [""]
+  resources: ["pods", "events", "persistentvolumes", "persistentvolumeclaims", "nodes", "proxy/nodes/*", "configmaps", "secrets", "services", "endpoints"]
+  verbs: ["*"]
+- apiGroups: ["apps"]
+  resources: ["daemonsets", "statefulsets", "deployments"]
+  verbs: ["*"]
+- apiGroups: ["batch"]
+  resources: ["jobs", "cronjobs"]
+  verbs: ["*"]
+- apiGroups: ["storage.k8s.io"]
+  resources: ["storageclasses", "volumeattachments", "csinodes", "csidrivers"]
+  verbs: ["*"]
+- apiGroups: ["coordination.k8s.io"]
+  resources: ["leases"]
+  verbs: ["*"]
+- apiGroups: ["longhorn.io"]
+  resources: ["volumes", "engines", "replicas", "settings", "engineimages", "nodes", "instancemanagers"]
+  verbs: ["*"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: longhorn-bind
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: longhorn-role
+subjects:
+- kind: ServiceAccount
+  name: longhorn-service-account
+  namespace: {{ .Values.longhorn.namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: longhorn-driver-deployer
+  namespace: {{ .Values.longhorn.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: longhorn-driver-deployer
+  template:
+    metadata:
+      labels:
+        app: longhorn-driver-deployer
+    spec:
+      serviceAccountName: longhorn-service-account
+      containers:
+      - name: longhorn-driver-deployer
+        image: longhornio/longhorn-manager:v1.5.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - longhorn-manager
+        - -d
+        - deploy-driver
+        - --manager-image
+        - longhornio/longhorn-manager:v1.5.1
+        - --manager-url
+        - http://longhorn-backend:9500/v1
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: SERVICE_ACCOUNT
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: longhorn-manager
+  namespace: {{ .Values.longhorn.namespace }}
+spec:
+  selector:
+    matchLabels:
+      app: longhorn-manager
+  template:
+    metadata:
+      labels:
+        app: longhorn-manager
+    spec:
+      serviceAccountName: longhorn-service-account
+      containers:
+      - name: longhorn-manager
+        image: longhornio/longhorn-manager:v1.5.1
+        imagePullPolicy: IfNotPresent
+        command:
+        - longhorn-manager
+        - -d
+        - daemon
+        - --engine-image
+        - longhornio/longhorn-engine:v1.5.1
+        - --instance-manager-image
+        - longhornio/longhorn-instance-manager:v1.5.1
+        - --share-manager-image
+        - longhornio/longhorn-share-manager:v1.5.1
+        - --backing-image-manager-image
+        - longhornio/backing-image-manager:v1.5.1
+        env:
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: longhorn-backend
+  namespace: {{ .Values.longhorn.namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: longhorn-manager
+  ports:
+  - name: manager
+    port: 9500
+    targetPort: 9500
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: longhorn-ui
+  namespace: {{ .Values.longhorn.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: longhorn-ui
+  template:
+    metadata:
+      labels:
+        app: longhorn-ui
+    spec:
+      containers:
+      - name: longhorn-ui
+        image: longhornio/longhorn-ui:v1.5.1
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: LONGHORN_MANAGER_IP
+          value: "http://longhorn-backend:9500"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: longhorn-frontend
+  namespace: {{ .Values.longhorn.namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: longhorn-ui
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+{{- end }}

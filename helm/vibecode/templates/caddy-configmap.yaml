@@ -11,10 +11,13 @@ data:
       admin off
       # Disable automatic HTTPS since Traefik will handle it
       auto_https off
-      # Trust the proxy protocol
+      # Configure protocols properly
       servers {
         protocol {
-          allow_h2c
+          # Explicitly enable HTTP/1.1
+          h1
+          # Allow HTTP/2 cleartext if needed
+          h2c
         }
       }
     }
