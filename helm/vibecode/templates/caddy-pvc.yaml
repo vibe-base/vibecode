@@ -8,8 +8,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  {{- if .Values.longhorn.enabled }}
-  storageClassName: {{ .Values.longhorn.storageClass.name }}
+  {{- if .Values.caddy.persistence.storageClass }}
+  storageClassName: {{ .Values.caddy.persistence.storageClass }}
   {{- end }}
   resources:
     requests:

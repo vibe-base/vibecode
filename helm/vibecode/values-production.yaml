@@ -7,6 +7,10 @@ caddy:
   domain: "vibecode.gigahard.ai"
   tls:
     enabled: false  # Disable Caddy TLS since Traefik will handle it
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: "longhorn"  # Use existing Longhorn StorageClass
 
 # Service configuration
 service:
@@ -36,10 +40,10 @@ certManager:
 
 # Longhorn configuration
 longhorn:
-  enabled: true
+  enabled: false  # Disable creating a new StorageClass
+  useExisting: true  # Use existing StorageClass
   storageClass:
     name: "longhorn"
-    isDefault: true
 
 # GitHub OAuth configuration (update with your values)
 github:
