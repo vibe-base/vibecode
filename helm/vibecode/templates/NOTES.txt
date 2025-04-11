@@ -8,6 +8,7 @@ To learn more about the release, try:
   $ helm get all {{ .Release.Name }}
 
 {{- if .Values.certManager.enabled }}
+{{- if .Capabilities.APIVersions.Has "cert-manager.io/v1/ClusterIssuer" }}
 Certificate management is enabled with cert-manager.
 A ClusterIssuer named {{ .Values.certManager.issuer.name }} has been created.
 A Certificate named {{ .Values.certManager.certificate.name }} has been requested for {{ .Values.certManager.certificate.domain }}.
@@ -17,6 +18,17 @@ To check the status of your certificate:
   $ kubectl get certificaterequest
   $ kubectl get order
   $ kubectl get challenge
+{{- else }}
+WARNING: cert-manager CRDs are not installed in your cluster.
+Please install cert-manager first:
+
+  $ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+  $ kubectl -n cert-manager wait --for=condition=ready pod --all --timeout=300s
+
+Then upgrade your release:
+
+  $ helm upgrade {{ .Release.Name }} .
+{{- end }}
 {{- end }}
 
 {{- if .Values.ingress.enabled }}

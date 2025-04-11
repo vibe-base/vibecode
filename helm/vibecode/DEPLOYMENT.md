@@ -11,44 +11,66 @@ This guide explains how to deploy VibeCode to a Kubernetes cluster using Helm.
 
 ## Deployment Steps
 
-1. Install Longhorn for persistent storage (if not already installed):
+1. **IMPORTANT**: Install cert-manager first:
+
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
+```
+
+2. Wait for cert-manager to be ready:
+
+```bash
+kubectl -n cert-manager wait --for=condition=ready pod --all --timeout=300s
+```
+
+3. Verify cert-manager is running:
+
+```bash
+kubectl get pods -n cert-manager
+```
+
+You should see pods like `cert-manager-xxx`, `cert-manager-cainjector-xxx`, and `cert-manager-webhook-xxx` all in the Running state.
+
+4. Install Longhorn for persistent storage (if not already installed):
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.5.1/deploy/longhorn.yaml
 ```
 
-2. Wait for Longhorn to be ready:
+5. Wait for Longhorn to be ready:
 
 ```bash
 kubectl -n longhorn-system wait --for=condition=ready pod --all --timeout=300s
 ```
 
-3. Update the values-production.yaml file with your specific settings:
+6. Update the values-production.yaml file with your specific settings:
    - Update the email address for Let's Encrypt notifications
    - Update your domain name
    - Add your GitHub OAuth credentials
 
-4. Deploy VibeCode using Helm:
+7. Deploy VibeCode using Helm:
 
 ```bash
 # From the helm directory
 helm upgrade --install vibecode ./vibecode -f values-production.yaml
 ```
 
-5. Check the status of your deployment:
+8. Check the status of your deployment:
 
 ```bash
 kubectl get pods
 kubectl get svc
+kubectl get ingress
 ```
 
-6. Wait for the LoadBalancer service to get an external IP:
+9. Check the status of your certificate:
 
 ```bash
-kubectl get svc caddy
+kubectl get certificate
+kubectl get certificaterequest
+kubectl get order
+kubectl get challenge
 ```
-
-7. Once the external IP is assigned, update your DNS to point to this IP.
 
 ## Troubleshooting
 
@@ -56,19 +78,30 @@ kubectl get svc caddy
 
 If you're having certificate issues:
 
-1. Make sure your domain is correctly pointing to the external IP of the LoadBalancer service
-2. Check the Caddy logs:
+1. Make sure cert-manager is properly installed:
 
 ```bash
-kubectl logs -l app=caddy
+kubectl get pods -n cert-manager
 ```
 
-3. If needed, you can temporarily use self-signed certificates by setting:
+2. Check if the CRDs are installed:
 
-```yaml
-caddy:
-  tls:
-    selfSigned: true
+```bash
+kubectl get crd | grep cert-manager
+```
+
+You should see several CRDs including `certificates.cert-manager.io` and `clusterissuers.cert-manager.io`.
+
+3. Check the cert-manager logs:
+
+```bash
+kubectl logs -n cert-manager -l app=cert-manager
+```
+
+4. Check the Traefik logs:
+
+```bash
+kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
 ```
 
 ### Persistent Volume Issues

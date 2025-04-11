@@ -8,16 +8,16 @@ metadata:
     {{- include "vibecode.labels" . | nindent 4 }}
   annotations:
     kubernetes.io/ingress.class: "traefik"
-    {{- if .Values.certManager.enabled }}
+    {{- if and .Values.certManager.enabled (.Capabilities.APIVersions.Has "cert-manager.io/v1/ClusterIssuer") }}
     cert-manager.io/cluster-issuer: {{ .Values.certManager.issuer.name }}
     {{- end }}
     {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
 spec:
-  {{- if or .Values.ingress.tls .Values.certManager.enabled }}
+  {{- if or .Values.ingress.tls (and .Values.certManager.enabled (.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate")) }}
   tls:
-    {{- if .Values.certManager.enabled }}
+    {{- if and .Values.certManager.enabled (.Capabilities.APIVersions.Has "cert-manager.io/v1/Certificate") }}
     - hosts:
         - {{ .Values.certManager.certificate.domain }}
       secretName: {{ .Values.certManager.certificate.secretName }}
