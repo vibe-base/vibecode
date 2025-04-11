@@ -13,8 +13,6 @@ spec:
       name: http
   selector:
     app: caddy
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: vibecode
 ---
 apiVersion: v1
 kind: Service
@@ -30,8 +28,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: frontend
+    app: frontend
 ---
 apiVersion: v1
 kind: Service
@@ -47,8 +44,7 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: express
+    app: express
 ---
 apiVersion: v1
 kind: Service
@@ -64,5 +60,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/name: fastapi
+    app: fastapi
