@@ -15,7 +15,6 @@ caddy:
   pullPolicy: IfNotPresent
   ports:
     - 80
-    - 443
   resources:
     limits:
       cpu: 200m
@@ -26,11 +25,7 @@ caddy:
   email: "your-email@example.com"  # For Let's Encrypt notifications
   domain: "vibecode.gigahard.ai"  # Your domain name
   tls:
-    enabled: true
-    selfSigned: false  # Use Let's Encrypt for production
-    # Set to false and provide certFile and keyFile for production
-    certFile: ""
-    keyFile: ""
+    enabled: false  # Disable Caddy TLS since Traefik will handle it
   persistence:
     enabled: true
     size: 1Gi  # For storing certificates
@@ -90,22 +85,19 @@ service:
   type: ClusterIP
   ports:
     http: 80
-    https: 443
 
-# Ingress configuration
+# Ingress configuration (disabled in favor of Traefik IngressRoute)
 ingress:
-  enabled: true
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
-    traefik.ingress.kubernetes.io/router.tls: "true"
+  enabled: false
+  annotations: {}
   hosts:
-    - host: vibecode.gigahard.ai
+    - host: vibecode.local
       paths:
         - path: /
           pathType: Prefix
   tls: []
 
-# Cert-Manager configuration
+# Cert-Manager configuration (now using Traefik's built-in ACME support)
 certManager:
   enabled: true
   issuer:

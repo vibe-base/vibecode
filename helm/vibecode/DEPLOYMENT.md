@@ -11,65 +11,47 @@ This guide explains how to deploy VibeCode to a Kubernetes cluster using Helm.
 
 ## Deployment Steps
 
-1. **IMPORTANT**: Install cert-manager first:
-
-```bash
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
-```
-
-2. Wait for cert-manager to be ready:
-
-```bash
-kubectl -n cert-manager wait --for=condition=ready pod --all --timeout=300s
-```
-
-3. Verify cert-manager is running:
-
-```bash
-kubectl get pods -n cert-manager
-```
-
-You should see pods like `cert-manager-xxx`, `cert-manager-cainjector-xxx`, and `cert-manager-webhook-xxx` all in the Running state.
-
-4. Install Longhorn for persistent storage (if not already installed):
+1. Install Longhorn for persistent storage (if not already installed):
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/v1.5.1/deploy/longhorn.yaml
 ```
 
-5. Wait for Longhorn to be ready:
+2. Wait for Longhorn to be ready:
 
 ```bash
 kubectl -n longhorn-system wait --for=condition=ready pod --all --timeout=300s
 ```
 
-6. Update the values-production.yaml file with your specific settings:
+3. Update the values-production.yaml file with your specific settings:
    - Update the email address for Let's Encrypt notifications
    - Update your domain name
    - Add your GitHub OAuth credentials
 
-7. Deploy VibeCode using Helm:
+4. Deploy VibeCode using Helm:
 
 ```bash
 # From the helm directory
 helm upgrade --install vibecode ./vibecode -f values-production.yaml
 ```
 
-8. Check the status of your deployment:
+5. Check the status of your deployment:
 
 ```bash
 kubectl get pods
 kubectl get svc
-kubectl get ingress
 ```
 
-9. Check the status of your certificate:
+6. Check if the Traefik IngressRoute was created:
 
 ```bash
-kubectl get certificate
-kubectl get certificaterequest
-kubectl get order
-kubectl get challenge
+kubectl get ingressroute
+```
+
+7. Check the Traefik logs to see if it's handling your domain:
+
+```bash
+kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
 ```
 
 ## Troubleshooting
@@ -78,30 +60,24 @@ kubectl get challenge
 
 If you're having certificate issues:
 
-1. Make sure cert-manager is properly installed:
-
-```bash
-kubectl get pods -n cert-manager
-```
-
-2. Check if the CRDs are installed:
-
-```bash
-kubectl get crd | grep cert-manager
-```
-
-You should see several CRDs including `certificates.cert-manager.io` and `clusterissuers.cert-manager.io`.
-
-3. Check the cert-manager logs:
-
-```bash
-kubectl logs -n cert-manager -l app=cert-manager
-```
-
-4. Check the Traefik logs:
+1. Make sure your domain is correctly pointing to the external IP of your cluster
+2. Check the Traefik logs:
 
 ```bash
 kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
+```
+
+3. Check if the Traefik IngressRoute was created:
+
+```bash
+kubectl get ingressroute
+kubectl describe ingressroute vibecode-route
+```
+
+4. Check if Traefik can access the ACME server:
+
+```bash
+kubectl exec -it -n kube-system $(kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik -o name) -- cat /data/acme.json
 ```
 
 ### Persistent Volume Issues

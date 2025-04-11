@@ -10,17 +10,15 @@ caddy:
 
 # Service configuration
 service:
-  type: ClusterIP  # Use ClusterIP since we're using Traefik ingress
+  type: ClusterIP
+  ports:
+    http: 80
 
-# Ingress configuration
+# Disable ingress since we're using Traefik IngressRoute
 ingress:
-  enabled: true
-  annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
-    traefik.ingress.kubernetes.io/router.tls: "true"
+  enabled: false
 
-# Cert-Manager configuration
+# Cert-Manager configuration (using Traefik's built-in ACME support)
 certManager:
   enabled: true
   issuer:

@@ -1,0 +1,17 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vibecode-route
+  labels:
+    {{- include "vibecode.labels" . | nindent 4 }}
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`{{ .Values.certManager.certificate.domain }}`)
+      kind: Rule
+      services:
+        - name: caddy
+          port: 80
+  tls:
+    certResolver: letsencrypt
