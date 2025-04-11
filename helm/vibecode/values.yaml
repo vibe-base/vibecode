@@ -1,0 +1,91 @@
+# Default values for VibeCode
+# This is a YAML-formatted file.
+
+# Common settings
+nameOverride: ""
+fullnameOverride: ""
+
+# Caddy configuration
+caddy:
+  image: docker.io/library/caddy:latest
+  pullPolicy: IfNotPresent
+  ports:
+    - 80
+    - 443
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Frontend configuration
+frontend:
+  image: docker.io/gigahard/vibecode-client:latest
+  pullPolicy: IfNotPresent
+  port: 3000
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# Express configuration
+express:
+  image: docker.io/gigahard/vibecode-express:latest
+  pullPolicy: IfNotPresent
+  port: 5000
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# FastAPI configuration
+fastapi:
+  image: docker.io/gigahard/vibecode-fastapi:latest
+  pullPolicy: IfNotPresent
+  port: 8000
+  resources:
+    limits:
+      cpu: 300m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+# GitHub OAuth configuration
+github:
+  clientId: ""
+  clientSecret: ""
+  redirectUri: ""
+
+# Environment configuration
+environment:
+  # Can be "development", "staging", or "production"
+  name: development
+
+# Service configuration
+service:
+  type: ClusterIP
+
+# Ingress configuration
+ingress:
+  enabled: false
+  annotations: {}
+  hosts:
+    - host: vibecode.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Node selection
+nodeSelector: {}
+tolerations: []
+affinity: {}

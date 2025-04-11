@@ -1,0 +1,12 @@
+apiVersion: v2
+name: vibecode
+description: A Helm chart for VibeCode - A collaborative coding platform with AI assistance
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - coding
+  - collaboration
+  - ai
+maintainers:
+  - name: VibeCode Team

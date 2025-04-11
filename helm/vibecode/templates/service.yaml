@@ -1,0 +1,79 @@
+# Caddy Service (main entry point)
+apiVersion: v1
+kind: Service
+metadata:
+  name: caddy
+  labels:
+    {{- include "vibecode.labels" . | nindent 4 }}
+    app: caddy
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https
+  selector:
+    app: caddy
+    {{- include "vibecode.selectorLabels" . | nindent 4 }}
+---
+# Frontend Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    {{- include "vibecode.labels" . | nindent 4 }}
+    app: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.frontend.port }}
+      targetPort: {{ .Values.frontend.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: frontend
+    {{- include "vibecode.selectorLabels" . | nindent 4 }}
+---
+# Express Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: express
+  labels:
+    {{- include "vibecode.labels" . | nindent 4 }}
+    app: express
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.express.port }}
+      targetPort: {{ .Values.express.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: express
+    {{- include "vibecode.selectorLabels" . | nindent 4 }}
+---
+# FastAPI Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: fastapi
+  labels:
+    {{- include "vibecode.labels" . | nindent 4 }}
+    app: fastapi
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.fastapi.port }}
+      targetPort: {{ .Values.fastapi.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: fastapi
+    {{- include "vibecode.selectorLabels" . | nindent 4 }}

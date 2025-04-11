@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=/api
+    volumes:
+      - frontend_data:/usr/share/nginx/html
+    networks:
+      - vibecode_network
+
+networks:
+  vibecode_network:
+    driver: bridge
+
+volumes:
+  frontend_data:

@@ -1,0 +1,5 @@
+# Exclude test files and docker-compose
+test/
+docker-compose.yml
+README.md
+.dockerignore

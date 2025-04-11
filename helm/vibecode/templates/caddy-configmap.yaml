@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: caddy-config
+  labels:
+    {{- include "vibecode.labels" . | nindent 4 }}
+data:
+  Caddyfile: |
+    {
+      # Global options
+      admin off
+    }
+
+    # Handle HTTP and HTTPS
+    :80, :443 {
+      # Automatic HTTPS (uncomment for production)
+      # tls internal
+
+      # Route to frontend
+      handle_path / {
+        reverse_proxy frontend:{{ .Values.frontend.port }}
+      }
+
+      # Route to Express API
+      handle_path /api/express/* {
+        uri strip_prefix /api/express
+        reverse_proxy express:{{ .Values.express.port }}
+      }
+
+      # Route to FastAPI
+      handle_path /api/* {
+        uri strip_prefix /api
+        reverse_proxy fastapi:{{ .Values.fastapi.port }}
+      }
+
+      # Health check
+      handle /health {
+        respond "OK" 200
+      }
+
+      # Log requests
+      log {
+        output stdout
+        format console
+      }
+    }

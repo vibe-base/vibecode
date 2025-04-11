@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  caddy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - vibecode_network
+    depends_on:
+      - frontend
+      - express
+      - fastapi
+
+  # Mock services for testing
+  frontend:
+    image: nginx:alpine
+    volumes:
+      - ./test/frontend:/usr/share/nginx/html
+    networks:
+      - vibecode_network
+
+  express:
+    image: node:18-alpine
+    command: sh -c "echo 'Express API is running' > /app/index.html && npx http-server /app -p 5000"
+    working_dir: /app
+    networks:
+      - vibecode_network
+
+  fastapi:
+    image: python:3.11-alpine
+    command: sh -c "echo 'FastAPI is running' > /app/index.html && cd /app && python -m http.server 8000"
+    working_dir: /app
+    networks:
+      - vibecode_network
+
+networks:
+  vibecode_network:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
