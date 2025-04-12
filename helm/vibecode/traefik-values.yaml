@@ -4,18 +4,18 @@ deployment:
   dnsPolicy: ClusterFirstWithHostNet
   initContainers:
     - name: fix-acme-perms
-      image: busybox:1.35
+      image: alpine:3.19
       command:
         - sh
         - -c
         - |
-          touch /data/acme.json
-          chmod 600 /data/acme.json
-      securityContext:
-        runAsUser: 0
+          adduser -D acmeuser
+          chown -R acmeuser:acmeuser /data
+          su acmeuser -c "touch /data/acme.json && chmod 600 /data/acme.json"
       volumeMounts:
-        - name: traefik  # must match the actual PVC name
+        - name: traefik
           mountPath: /data
+
 
 persistence:
   enabled: true
