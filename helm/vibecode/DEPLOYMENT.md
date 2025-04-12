@@ -33,12 +33,10 @@ ports:
     expose:
       default: true
     port: 80
-    hostPort: 80
   websecure:
     expose:
       default: true
     port: 443
-    hostPort: 443
 
 additionalArguments:
   - "--entrypoints.web.address=:80"
