@@ -1,6 +1,8 @@
 deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
+  podSecurityContext:
+    fsGroup: 65532
 
 persistence:
   enabled: true
