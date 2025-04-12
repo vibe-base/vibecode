@@ -4,14 +4,7 @@ deployment:
   dnsPolicy: ClusterFirstWithHostNet
   initContainers:
     - name: fix-acme-perms
-      image: alpine:3.19
-      command:
-        - sh
-        - -c
-        - |
-          adduser -D acmeuser
-          chown -R acmeuser:acmeuser /data
-          su acmeuser -c "touch /data/acme.json && chmod 600 /data/acme.json"
+      image: alpine:3.19 
       volumeMounts:
         - name: traefik
           mountPath: /data
