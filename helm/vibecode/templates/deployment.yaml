@@ -1,54 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: caddy
-  labels:
-    {{- include "vibecode.labels" . | nindent 4 }}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: caddy
-  template:
-    metadata:
-      labels:
-        app: caddy
-    spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      containers:
-        - name: {{ .Chart.Name }}
-          image: {{ .Values.caddy.image }}
-          imagePullPolicy: {{ .Values.caddy.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          volumeMounts:
-            - name: caddy-config
-              mountPath: /etc/caddy/Caddyfile
-              subPath: Caddyfile
-            {{- if .Values.caddy.persistence.enabled }}
-            - name: caddy-data
-              mountPath: /data
-            {{- end }}
-          resources:
-            {{- toYaml .Values.caddy.resources | nindent 12 }}
-      volumes:
-        - name: caddy-config
-          configMap:
-            name: caddy-config
-        {{- if .Values.caddy.persistence.enabled }}
-        - name: caddy-data
-          persistentVolumeClaim:
-            claimName: caddy-data
-        {{- end }}
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
   name: frontend
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}

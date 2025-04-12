@@ -1,42 +1,18 @@
 # Production values for VibeCode
 
-# Caddy configuration
-caddy:
-  image: docker.io/gigahard/vibecode-caddy:latest
-  email: "your-actual-email@example.com"  # Update with your email for Let's Encrypt
-  domain: "vibecode.gigahard.ai"
-  tls:
-    enabled: false  # Disable Caddy TLS since Traefik will handle it
-  persistence:
-    enabled: true
-    size: 1Gi
-    storageClass: "longhorn"  # Use existing Longhorn StorageClass
+# Domain name
+domain: "vibecode.gigahard.ai"
 
 # Service configuration
 service:
   type: ClusterIP
-  ports:
-    http: 80
 
 # Enable ingress for standard Kubernetes Ingress
 ingress:
   enabled: true
   annotations:
-    kubernetes.io/ingress.class: "traefik"
-    traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure"
-    traefik.ingress.kubernetes.io/router.tls: "true"
-
-# Cert-Manager configuration
-certManager:
-  enabled: true
-  issuer:
-    name: letsencrypt-prod
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: "your-actual-email@example.com"  # Update with your email
-  certificate:
-    name: vibecode-tls
-    secretName: vibecode-tls
-    domain: vibecode.gigahard.ai
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
 
 # Longhorn configuration
 longhorn:

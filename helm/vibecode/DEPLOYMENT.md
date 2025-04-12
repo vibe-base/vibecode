@@ -8,12 +8,43 @@ This guide explains how to deploy VibeCode to a Kubernetes cluster using Helm.
 - Helm 3.x installed
 - kubectl configured to access your cluster
 - A domain name pointing to your cluster's IP address
-- Longhorn already installed in the cluster
+- Traefik configured with Let's Encrypt
+
+## Traefik Configuration
+
+Before deploying VibeCode, make sure Traefik is configured with Let's Encrypt:
+
+```bash
+# Create traefik-values.yaml
+cat > traefik-values.yaml << 'EOT'
+additionalArguments:
+  - "--entrypoints.web.address=:80"
+  - "--entrypoints.websecure.address=:443"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+
+persistence:
+  enabled: true
+  storageClass: longhorn
+  accessMode: ReadWriteOnce
+  size: 1Gi
+EOT
+
+# Update Traefik
+helm repo add traefik https://traefik.github.io/charts
+helm repo update
+helm upgrade --install traefik traefik/traefik \
+  --namespace kube-system \
+  -f traefik-values.yaml
+```
+
+Replace `your@email.com` with your actual email address.
 
 ## Deployment Steps
 
 1. Update the values-production.yaml file with your specific settings:
-   - Update the email address for Let's Encrypt notifications
    - Update your domain name
    - Add your GitHub OAuth credentials
 
@@ -31,14 +62,6 @@ kubectl get pods -n vibecode
 kubectl get svc -n vibecode
 kubectl get ingress -n vibecode
 ```
-
-4. Access the Longhorn UI:
-
-```bash
-kubectl port-forward -n longhorn-system svc/longhorn-frontend 8000:80
-```
-
-Then access http://localhost:8000 in your browser.
 
 ## Troubleshooting
 
@@ -60,20 +83,10 @@ kubectl get ingress -n vibecode
 kubectl describe ingress vibecode-ingress -n vibecode
 ```
 
-### Persistent Volume Issues
-
-If you're having issues with persistent volumes:
-
-1. Check the status of Longhorn:
+4. Check if Traefik is properly configured with Let's Encrypt:
 
 ```bash
-kubectl get pods -n longhorn-system
-```
-
-2. Check the status of your PVCs:
-
-```bash
-kubectl get pvc -n vibecode
+kubectl exec -it -n kube-system $(kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik -o name) -- cat /data/acme.json
 ```
 
 ## Accessing the Application

@@ -1,0 +1,14 @@
+# traefik-values.yaml
+additionalArguments:
+  - "--entrypoints.web.address=:80"
+  - "--entrypoints.websecure.address=:443"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+
+persistence:
+  enabled: true
+  storageClass: longhorn
+  accessMode: ReadWriteOnce
+  size: 1Gi
