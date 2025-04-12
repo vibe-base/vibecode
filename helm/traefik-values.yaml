@@ -1,0 +1,54 @@
+# traefik-values.yaml
+deployment:
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  initContainers:
+    - name: fix-acme-perms
+      image: busybox:1.35
+      command:
+        - sh
+        - -c
+        - |
+          mkdir -p /data
+          touch /data/acme.json
+          chmod 600 /data/acme.json
+          # Make sure Traefik can access the directory and file
+          chown 65532:65532 /data /data/acme.json
+      securityContext:
+        runAsUser: 0
+      volumeMounts:
+        - name: traefik
+          mountPath: /data
+
+# Set the security context for the main container
+securityContext:
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+
+persistence:
+  enabled: true
+  name: traefik
+  storageClass: longhorn
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+ports:
+  web:
+    port: 80
+    expose:
+      default: true
+  websecure:
+    port: 443
+    expose:
+      default: true
+
+additionalArguments:
+  - "--entrypoints.web.address=:80"
+  - "--entrypoints.websecure.address=:443"
+  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+  - "--providers.kubernetesingress"
+  - "--providers.kubernetescrd"
