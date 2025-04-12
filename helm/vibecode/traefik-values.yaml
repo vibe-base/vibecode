@@ -1,29 +1,12 @@
 deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
-
   podSecurityContext:
-    fsGroup: 65532
-
-  initContainers:
-    - name: fix-permissions
-      image: busybox:1.35
-      command:
-        - sh
-        - -c
-        - |
-          touch /data/acme.json
-          chmod 600 /data/acme.json
-          chown 65532:65532 /data/acme.json
-      securityContext:
-        runAsUser: 0
-      volumeMounts:
-        - name: data  # <-- This must match Helm's expected volume name
-          mountPath: /data
+    fsGroup: 65532 # Ensures Longhorn PVC is group-writable by Traefik (65532)
 
 persistence:
   enabled: true
-  existingClaim: traefik  # <-- This explicitly tells Helm to reuse your existing PVC named traefik
+  existingClaim: traefik # Mounts Longhorn PVC "traefik" as "data" at /data
 
 ports:
   web:
