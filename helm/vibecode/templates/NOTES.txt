@@ -16,19 +16,14 @@ To access the Longhorn UI:
 Then access http://localhost:8000 in your browser.
 {{- end }}
 
-{{- if .Values.certManager.enabled }}
-Certificate management is enabled.
-A Certificate named {{ .Values.certManager.certificate.name }} has been requested for {{ .Values.certManager.certificate.domain }}.
-
-To check the status of your certificate:
-  $ kubectl get certificate {{ .Values.certManager.certificate.name }}
-{{- end }}
-
 {{- if .Values.ingress.enabled }}
 Your application should be available at:
-  https://{{ .Values.certManager.certificate.domain }}
+  https://{{ .Values.domain }}
+
+Traefik is configured to automatically obtain and manage TLS certificates
+using the Let's Encrypt certificate resolver.
 {{- else }}
 Your application is not exposed via Ingress. To access it, you need to:
-  $ kubectl port-forward svc/caddy 8080:80
+  $ kubectl port-forward svc/frontend 8080:{{ .Values.frontend.port }}
 Then access http://localhost:8080 in your browser.
 {{- end }}
