@@ -1,18 +1,10 @@
-# traefik-values.yaml
 deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
-  initContainers:
-    - name: fix-acme-perms
-      image: alpine:3.19 
-      volumeMounts:
-        - name: traefik
-          mountPath: /data
-
 
 persistence:
   enabled: true
-  name: traefik  # same here
+  name: traefik-cert
   storageClass: longhorn
   accessMode: ReadWriteOnce
   size: 1Gi
@@ -30,7 +22,7 @@ ports:
 additionalArguments:
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
-  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+  - "--certificatesresolvers.letsencrypt.acme.email=you@email.com"
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
