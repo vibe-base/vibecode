@@ -2,13 +2,13 @@ deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
   podSecurityContext:
-    fsGroup: 0
-    runAsUser: 0
-    runAsGroup: 0
-    
+    fsGroup: 0            # Ensures the PVC is group-writable by Traefik
+    runAsUser: 0          # Run the container as root user
+    runAsGroup: 0         # Run the container as root group
+
 persistence:
   enabled: true
-  existingClaim: traefik # Mounts Longhorn PVC "traefik" as "data" at /data
+  existingClaim: traefik  # Mounts Longhorn PVC "traefik" as "data" at /data
 
 ports:
   web:
