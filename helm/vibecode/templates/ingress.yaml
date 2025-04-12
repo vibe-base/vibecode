@@ -21,17 +21,3 @@ spec:
                 name: frontend
                 port:
                   number: {{ .Values.frontend.port }}
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: fastapi
-                port:
-                  number: {{ .Values.fastapi.port }}
-          - path: /api/express
-            pathType: Prefix
-            backend:
-              service:
-                name: express
-                port:
-                  number: {{ .Values.express.port }}
