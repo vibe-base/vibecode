@@ -1,20 +1,13 @@
-# traefik-values.yaml
+# Simple traefik-values.yaml
 deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
-  # Remove the init container since we can't run as root
-
-# Set the security context for the main container
-securityContext:
-  runAsUser: 65532
-  runAsGroup: 65532
-  fsGroup: 65532  # This will set the ownership of mounted volumes
 
 persistence:
   enabled: true
+  storageClass: longhorn
   accessMode: ReadWriteOnce
   size: 1Gi
-  storageClass: longhorn
 
 ports:
   web:
