@@ -30,6 +30,15 @@ persistence:
   storageClass: longhorn
   accessMode: ReadWriteOnce
   size: 1Gi
+
+deployment:
+  initContainers:
+    - name: fix-acme-perms
+      image: busybox:1.35
+      command: ["sh", "-c", "chmod 600 /data/acme.json || true"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
 EOT
 
 # Update Traefik
@@ -87,6 +96,12 @@ kubectl describe ingress vibecode-ingress -n vibecode
 
 ```bash
 kubectl exec -it -n kube-system $(kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik -o name) -- cat /data/acme.json
+```
+
+5. If you see permission issues with acme.json, you can fix them manually:
+
+```bash
+kubectl exec -it -n kube-system $(kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik -o name) -- chmod 600 /data/acme.json
 ```
 
 ## Accessing the Application
