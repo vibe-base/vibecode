@@ -1,44 +1,114 @@
-deployment:
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
-  podSecurityContext:
-    fsGroup: 65532         # Use a non-root fsGroup for the Traefik container
-    runAsUser: 65532       # Run the container as a non-root user (65532 is a typical non-root user in Kubernetes)
-    runAsGroup: 65532      # Set the group as the same non-root user
+# values.yaml for Traefik v3.3.5 with Let's Encrypt support
 
+# Deployment Configuration
+deployment:
+  enabled: true
+  replicas: 1
+  annotations: {}
+
+# Pod Configuration
+hostNetwork: true
+dnsPolicy: ClusterFirstWithHostNet
+
+# Security Context (Non-root user)
+podSecurityContext:
+  fsGroup: 65532         # Ensures volumes are writable by Traefik
+  runAsUser: 65532       # Runs Traefik as non-root user (65532)
+  runAsGroup: 65532      # Sets group ownership
+
+# Init Container to Fix Permissions
+initContainers:
+  - name: fix-acme-permissions
+    image: busybox:latest
+    command: ["sh", "-c", "mkdir -p /data && chown -R 65532:65532 /data"]
+    securityContext:
+      runAsUser: 0       # Runs as root to fix permissions
+    volumeMounts:
+      - name: data
+        mountPath: /data
+
+# Persistence Configuration
 persistence:
   enabled: true
-  existingClaim: traefik  # Mounts Longhorn PVC "traefik" as "data" at /data
+  existingClaim: traefik  # Uses existing Longhorn PVC
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  annotations: {}
 
+# Port Configuration
 ports:
   web:
-    expose:
-      default: true
     port: 80
+    expose: true
+    exposedPort: 80
+    protocol: TCP
   websecure:
-    expose:
-      default: true
     port: 443
+    expose: true
+    exposedPort: 443
+    protocol: TCP
+  traefik:
+    port: 8080
+    expose: false
+  metrics:
+    port: 9100
+    expose: false
 
+# Additional Traefik Arguments
 additionalArguments:
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
-  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"  # CHANGE THIS
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
   - "--providers.kubernetesingress"
   - "--providers.kubernetescrd"
+  - "--api.dashboard=true"
+  - "--ping=true"
+  - "--metrics.prometheus=true"
 
+# Container Configuration
 containers:
   - name: traefik
-    image: traefik:v3.3.5
+    image: "traefik:v3.3.5"
     securityContext:
-      runAsUser: 65532       # Use non-root user (65532)
-      runAsGroup: 65532      # Use non-root group (65532)
+      runAsUser: 65532
+      runAsGroup: 65532
     volumeMounts:
-      - mountPath: /data
-        name: traefik
+      - name: data
+        mountPath: /data
+        readOnly: false
 
-# Ensure the PVC (PersistentVolumeClaim) is not created as root and is accessible by non-root
+# Volumes Configuration
+volumes:
+  - name: data
+    persistentVolumeClaim:
+      claimName: traefik
+
+# Disable automatic PVC creation (using existing PVC)
 volumeClaimTemplates: []
+
+# Ingress Configuration
+ingressRoute:
+  dashboard:
+    enabled: false  # Set to true if you want to expose the dashboard via Ingress
+
+# Service Configuration
+service:
+  enabled: true
+  type: LoadBalancer
+  annotations: {}
+
+# Resource Limits
+resources:
+  requests:
+    cpu: "100m"
+    memory: "50Mi"
+  limits:
+    cpu: "500m"
+    memory: "200Mi"
+
+# Autoscaling
+autoscaling:
+  enabled: false
