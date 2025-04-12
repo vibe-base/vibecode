@@ -1,67 +1,44 @@
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: traefik
-  namespace: default
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: traefik
-  template:
-    metadata:
-      labels:
-        app: traefik
-    spec:
-      securityContext:
-        fsGroup: 0           # Ensures the PVC is group-writable by Traefik
-        runAsUser: 0         # Run the container as root user
-        runAsGroup: 0        # Run the container as root group
-      containers:
-        - name: traefik
-          image: traefik:v3.3.5
-          args:
-            - "--api.dashboard=true"
-            - "--api.insecure=true"
-            - "--entrypoints.web.address=:80"
-            - "--entrypoints.websecure.address=:443"
-            - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
-            - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
-            - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-            - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-            - "--providers.kubernetesingress"
-            - "--providers.kubernetescrd"
-          volumeMounts:
-            - mountPath: /data
-              name: traefik-data
-      volumes:
-        - name: traefik-data
-          persistentVolumeClaim:
-            claimName: traefik
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: traefik
-  namespace: default
-spec:
-  ports:
-    - port: 80
-      name: web
-    - port: 443
-      name: websecure
-  selector:
-    app: traefik
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: traefik
-  namespace: default
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
-  storageClassName: longhorn
+deployment:
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  podSecurityContext:
+    fsGroup: 65532         # Use a non-root fsGroup for the Traefik container
+    runAsUser: 65532       # Run the container as a non-root user (65532 is a typical non-root user in Kubernetes)
+    runAsGroup: 65532      # Set the group as the same non-root user
+
+persistence:
+  enabled: true
+  existingClaim: traefik  # Mounts Longhorn PVC "traefik" as "data" at /data
+
+ports:
+  web:
+    expose:
+      default: true
+    port: 80
+  websecure:
+    expose:
+      default: true
+    port: 443
+
+additionalArguments:
+  - "--entrypoints.web.address=:80"
+  - "--entrypoints.websecure.address=:443"
+  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+  - "--providers.kubernetesingress"
+  - "--providers.kubernetescrd"
+
+containers:
+  - name: traefik
+    image: traefik:v3.3.5
+    securityContext:
+      runAsUser: 65532       # Use non-root user (65532)
+      runAsGroup: 65532      # Use non-root group (65532)
+    volumeMounts:
+      - mountPath: /data
+        name: traefik
+
+# Ensure the PVC (PersistentVolumeClaim) is not created as root and is accessible by non-root
+volumeClaimTemplates: []
