@@ -17,7 +17,7 @@ deployment:
       securityContext:
         runAsUser: 0
       volumeMounts:
-        - name: traefik
+        - name: data
           mountPath: /data
 
 # Set the security context for the main container
@@ -28,7 +28,7 @@ securityContext:
 
 persistence:
   enabled: true
-  name: traefik
+  name: data
   storageClass: longhorn
   accessMode: ReadWriteOnce
   size: 1Gi
