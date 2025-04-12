@@ -2,8 +2,10 @@ deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
   podSecurityContext:
-    fsGroup: 0 # Ensures Longhorn PVC is group-writable by Traefik (65532)
-
+    fsGroup: 0
+    runAsUser: 0
+    runAsGroup: 0
+    
 persistence:
   enabled: true
   existingClaim: traefik # Mounts Longhorn PVC "traefik" as "data" at /data
