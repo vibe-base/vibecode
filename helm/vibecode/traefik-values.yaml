@@ -1,4 +1,4 @@
-# values.yaml for Traefik v3.3.5 with Let's Encrypt support
+# traefik-values.yaml
 
 # Deployment Configuration
 deployment:
@@ -10,19 +10,19 @@ deployment:
 hostNetwork: true
 dnsPolicy: ClusterFirstWithHostNet
 
-# Security Context (Non-root user)
-podSecurityContext:
-  fsGroup: 65532         # Ensures volumes are writable by Traefik
-  runAsUser: 65532       # Runs Traefik as non-root user (65532)
-  runAsGroup: 65532      # Sets group ownership
+# Security Context
+securityContext:
+  fsGroup: 65532
+  runAsUser: 65532
+  runAsGroup: 65532
 
-# Init Container to Fix Permissions
+# Init Container for Permission Fix
 initContainers:
-  - name: fix-acme-permissions
-    image: busybox:latest
+  - name: fix-permissions
+    image: busybox:1.35
     command: ["sh", "-c", "mkdir -p /data && chown -R 65532:65532 /data"]
     securityContext:
-      runAsUser: 0       # Runs as root to fix permissions
+      runAsUser: 0
     volumeMounts:
       - name: data
         mountPath: /data
@@ -30,39 +30,34 @@ initContainers:
 # Persistence Configuration
 persistence:
   enabled: true
-  existingClaim: traefik  # Uses existing Longhorn PVC
+  existingClaim: traefik
   accessMode: ReadWriteOnce
   size: 1Gi
-  annotations: {}
 
-# Port Configuration
+# Ports Configuration (correct format)
 ports:
   web:
     port: 80
-    expose: 
-      default: true
+    expose: true
+    exposedPort: 80
     protocol: TCP
   websecure:
     port: 443
-    expose: 
-      default: true
+    expose: true
+    exposedPort: 443
     protocol: TCP
   traefik:
     port: 8080
-    expose: 
-      default: false
-    protocol: TCP
+    expose: false
   metrics:
     port: 9100
-    expose: 
-      default: false
-    protocol: TCP
+    expose: false
 
-# Additional Traefik Arguments
+# Additional Arguments
 additionalArguments:
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
-  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"  # CHANGE THIS
+  - "--certificatesresolvers.letsencrypt.acme.email=your_real_email@example.com"
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
@@ -82,29 +77,17 @@ containers:
     volumeMounts:
       - name: data
         mountPath: /data
-        readOnly: false
 
-# Volumes Configuration
+# Single Volume Definition
 volumes:
   - name: data
     persistentVolumeClaim:
       claimName: traefik
 
-# Disable automatic PVC creation (using existing PVC)
+# Disable PVC template
 volumeClaimTemplates: []
 
-# Ingress Configuration
-ingressRoute:
-  dashboard:
-    enabled: false  # Set to true if you want to expose the dashboard via Ingress
-
-# Service Configuration
-service:
-  enabled: true
-  type: LoadBalancer
-  annotations: {}
-
-# Resource Limits
+# Resources
 resources:
   requests:
     cpu: "100m"
@@ -112,7 +95,3 @@ resources:
   limits:
     cpu: "500m"
     memory: "200Mi"
-
-# Autoscaling
-autoscaling:
-  enabled: false
