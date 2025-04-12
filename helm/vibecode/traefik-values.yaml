@@ -11,6 +11,8 @@ deployment:
         - |
           touch /data/acme.json
           chmod 600 /data/acme.json
+      securityContext:
+        runAsUser: 0
       volumeMounts:
         - name: traefik  # must match the actual PVC name
           mountPath: /data

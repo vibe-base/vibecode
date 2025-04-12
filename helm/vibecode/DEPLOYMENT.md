@@ -29,6 +29,8 @@ deployment:
         - |
           touch /data/acme.json
           chmod 600 /data/acme.json
+      securityContext:
+        runAsUser: 0
       volumeMounts:
         - name: traefik  # must match the actual PVC name
           mountPath: /data
@@ -119,12 +121,6 @@ kubectl describe ingress vibecode-ingress -n vibecode
 
 ```bash
 kubectl exec -it -n kube-system $(kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik -o name) -- cat /data/acme.json
-```
-
-5. If you see permission issues with acme.json, you can fix them manually:
-
-```bash
-kubectl exec -it -n kube-system $(kubectl get pods -n kube-system -l app.kubernetes.io/name=traefik -o name) -- chmod 600 /data/acme.json
 ```
 
 ## Accessing the Application
