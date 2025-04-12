@@ -13,6 +13,7 @@ spec:
     metadata:
       labels:
         app: frontend
+        {{- include "vibecode.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -44,6 +45,7 @@ spec:
     metadata:
       labels:
         app: express
+        {{- include "vibecode.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -75,6 +77,7 @@ spec:
     metadata:
       labels:
         app: fastapi
+        {{- include "vibecode.labels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
