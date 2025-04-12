@@ -48,6 +48,7 @@ additionalArguments:
 
 persistence:
   enabled: true
+  name: data  # This is critical, must match the mount name in initContainer
   storageClass: longhorn
   accessMode: ReadWriteOnce
   size: 1Gi

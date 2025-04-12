@@ -1,10 +1,11 @@
+# traefik-values.yaml
 deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
   initContainers:
     - name: fix-acme-perms
       image: busybox:1.35
-      command: ["sh", "-c", "touch /data/acme.json && chmod 600 /data/acme.json"]
+      command: ["sh", "-c", "chmod 600 /data/acme.json || true"]
       volumeMounts:
         - name: data
           mountPath: /data
@@ -26,11 +27,10 @@ additionalArguments:
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-  - "--providers.kubernetesingress"
-  - "--providers.kubernetescrd"
 
 persistence:
   enabled: true
+  name: data  # This is critical, must match the mount name in initContainer
   storageClass: longhorn
   accessMode: ReadWriteOnce
   size: 1Gi
