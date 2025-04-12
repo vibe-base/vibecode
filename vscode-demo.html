@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeCode - VS Code-like Interface</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* VS Code theme colors */
+    :root {
+      --activity-bar-bg: #333333;
+      --activity-bar-fg: #cccccc;
+      --sidebar-bg: #252526;
+      --sidebar-fg: #cccccc;
+      --editor-bg: #1e1e1e;
+      --editor-fg: #d4d4d4;
+      --status-bar-bg: #007acc;
+      --status-bar-fg: #ffffff;
+      --tab-active-bg: #1e1e1e;
+      --tab-inactive-bg: #2d2d2d;
+      --border-color: #474747;
+    }
+
+    /* Terminal theme colors */
+    .theme-terminal {
+      --activity-bar-bg: #000000;
+      --activity-bar-fg: #00ff00;
+      --sidebar-bg: #0e1e0e;
+      --sidebar-fg: #00ff00;
+      --editor-bg: #000000;
+      --editor-fg: #00ff00;
+      --status-bar-bg: #003b00;
+      --status-bar-fg: #00ff00;
+      --tab-active-bg: #000000;
+      --tab-inactive-bg: #001a00;
+      --border-color: #006600;
+    }
+
+    /* Light theme colors */
+    .theme-light {
+      --activity-bar-bg: #2c2c2c;
+      --activity-bar-fg: #cccccc;
+      --sidebar-bg: #f3f3f3;
+      --sidebar-fg: #333333;
+      --editor-bg: #ffffff;
+      --editor-fg: #1e1e1e;
+      --status-bar-bg: #007acc;
+      --status-bar-fg: #ffffff;
+      --tab-active-bg: #ffffff;
+      --tab-inactive-bg: #ececec;
+      --border-color: #e0e0e0;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .vscode-layout {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .main-content {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .activity-bar {
+      width: 48px;
+      background-color: var(--activity-bar-bg);
+      color: var(--activity-bar-fg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .activity-bar-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      color: #858585;
+      cursor: pointer;
+    }
+
+    .activity-bar-icon:hover {
+      color: #ffffff;
+    }
+
+    .activity-bar-icon.active {
+      color: #ffffff;
+    }
+
+    .activity-bar-icon.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background-color: #ffffff;
+    }
+
+    .sidebar {
+      width: 256px;
+      background-color: var(--sidebar-bg);
+      color: var(--sidebar-fg);
+      border-right: 1px solid var(--border-color);
+      overflow-y: auto;
+    }
+
+    .editor {
+      flex: 1;
+      background-color: var(--editor-bg);
+      color: var(--editor-fg);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tabs {
+      display: flex;
+      background-color: var(--tab-inactive-bg);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .tab {
+      padding: 8px 16px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .tab.active {
+      background-color: var(--tab-active-bg);
+      border-top: 2px solid #007acc;
+      border-bottom: 1px solid var(--tab-active-bg);
+    }
+
+    .tab-icon {
+      margin-right: 4px;
+      color: #75beff;
+    }
+
+    .editor-content {
+      flex: 1;
+      padding: 16px;
+      overflow: auto;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bottom-panel {
+      height: 200px;
+      background-color: #1e1e1e;
+      border-top: 1px solid var(--border-color);
+      color: #cccccc;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .bottom-tabs {
+      display: flex;
+      background-color: #252526;
+      border-bottom: 1px solid var(--border-color);
+      height: 36px;
+      align-items: center;
+      padding-left: 8px;
+    }
+
+    .bottom-tab {
+      padding: 0 10px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      font-size: 11px;
+      text-transform: uppercase;
+      cursor: pointer;
+      border-right: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .bottom-tab.active {
+      color: #ffffff;
+      background-color: #1e1e1e;
+    }
+
+    .bottom-tab.active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #007acc;
+    }
+
+    .bottom-tab-content {
+      flex: 1;
+      overflow: auto;
+      display: none;
+    }
+
+    .bottom-tab-content.active {
+      display: block;
+    }
+
+    .bottom-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 8px;
+      height: 30px;
+      background-color: #252526;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .filter-box {
+      display: flex;
+      align-items: center;
+      background-color: #3c3c3c;
+      border-radius: 4px;
+      padding: 2px 6px;
+      height: 22px;
+    }
+
+    .filter-box input {
+      background: transparent;
+      border: none;
+      color: #cccccc;
+      font-size: 12px;
+      outline: none;
+      width: 150px;
+    }
+
+    .filter-box-icon {
+      color: #858585;
+      margin-right: 4px;
+    }
+
+    .terminal-panel {
+      padding: 8px;
+      overflow: auto;
+      height: 100%;
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      background-color: #252526;
+      padding: 4px 8px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .terminal-title {
+      font-size: 12px;
+      margin-left: 4px;
+    }
+
+    .terminal-content {
+      padding: 8px;
+      white-space: pre-wrap;
+    }
+
+    .terminal-prompt {
+      color: #0f0;
+    }
+
+    .status-bar {
+      height: 22px;
+      background-color: var(--status-bar-bg);
+      color: var(--status-bar-fg);
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 12px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      margin-right: 16px;
+    }
+
+    .status-icon {
+      margin-right: 4px;
+    }
+
+    .explorer-section {
+      margin-bottom: 8px;
+    }
+
+    .explorer-header {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      padding: 8px;
+      letter-spacing: 0.5px;
+    }
+
+    .folder {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      cursor: pointer;
+    }
+
+    .folder:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .folder-icon {
+      margin-right: 4px;
+    }
+
+    .file {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px 4px 24px;
+      cursor: pointer;
+    }
+
+    .file:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .file-icon {
+      margin-right: 4px;
+    }
+
+    .theme-toggle {
+      margin-top: auto;
+      margin-bottom: 16px;
+    }
+
+    /* Syntax highlighting */
+    .keyword {
+      color: #569cd6;
+    }
+
+    .string {
+      color: #ce9178;
+    }
+
+    .comment {
+      color: #6a9955;
+    }
+
+    .function {
+      color: #dcdcaa;
+    }
+
+    .type {
+      color: #4ec9b0;
+    }
+
+    .variable {
+      color: #9cdcfe;
+    }
+  </style>
+</head>
+<body class="theme-dark">
+  <div class="vscode-layout">
+    <div class="main-content">
+      <!-- Activity Bar -->
+      <div class="activity-bar">
+        <div class="activity-bar-icon active" title="Explorer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="3" y1="9" x2="21" y2="9"></line>
+            <line x1="9" y1="21" x2="9" y2="9"></line>
+          </svg>
+        </div>
+        <div class="activity-bar-icon" title="Search">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+        <div class="activity-bar-icon" title="Source Control">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="18" r="3"></circle>
+            <circle cx="6" cy="6" r="3"></circle>
+            <path d="M6 21V9a9 9 0 0 0 9 9"></path>
+          </svg>
+        </div>
+        <div class="activity-bar-icon" title="Run and Debug">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+            <path d="m9 12 2 2 4-4"></path>
+          </svg>
+        </div>
+        <div class="activity-bar-icon" title="Extensions">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v6.5"></path>
+            <path d="M18.5 12H22"></path>
+            <path d="M12 22v-6.5"></path>
+            <path d="M2 12h3.5"></path>
+            <rect x="7" y="7" width="10" height="10" rx="1"></rect>
+          </svg>
+        </div>
+
+        <div class="activity-bar-icon" title="Robot">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+            <circle cx="12" cy="5" r="2"></circle>
+            <path d="M12 7v4"></path>
+            <line x1="8" y1="16" x2="8" y2="16"></line>
+            <line x1="16" y1="16" x2="16" y2="16"></line>
+          </svg>
+        </div>
+
+        <div class="activity-bar-icon" title="Docker">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 12.5c0 1.757-4.254 3.182-9.5 3.182-5.247 0-9.5-1.425-9.5-3.182S7.253 9.318 12.5 9.318c5.247 0 9.5 1.425 9.5 3.182Z"></path>
+            <path d="M22 12.5v4c0 1.757-4.254 3.182-9.5 3.182-5.247 0-9.5-1.425-9.5-3.182v-4"></path>
+            <path d="M22 16.5v4c0 1.757-4.254 3.182-9.5 3.182-5.247 0-9.5-1.425-9.5-3.182v-4"></path>
+          </svg>
+        </div>
+
+        <div class="theme-toggle">
+          <button id="theme-toggle" class="activity-bar-icon" title="Toggle Theme">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="explorer-section">
+          <div class="explorer-header">Explorer</div>
+
+          <div class="folder">
+            <span class="folder-icon">▼</span>
+            <span>src</span>
+          </div>
+
+          <div class="folder" style="padding-left: 24px;">
+            <span class="folder-icon">▼</span>
+            <span>components</span>
+          </div>
+
+          <div class="file">
+            <span class="file-icon" style="color: #75beff;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </span>
+            <span>Button.tsx</span>
+          </div>
+
+          <div class="file">
+            <span class="file-icon" style="color: #75beff;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </span>
+            <span>Card.tsx</span>
+          </div>
+
+          <div class="folder" style="padding-left: 24px;">
+            <span class="folder-icon">►</span>
+            <span>pages</span>
+          </div>
+
+          <div class="folder" style="padding-left: 24px;">
+            <span class="folder-icon">►</span>
+            <span>lib</span>
+          </div>
+
+          <div class="file" style="padding-left: 24px;">
+            <span class="file-icon" style="color: #75beff;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </span>
+            <span>App.tsx</span>
+          </div>
+
+          <div class="file" style="padding-left: 24px;">
+            <span class="file-icon" style="color: #75beff;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </span>
+            <span>main.tsx</span>
+          </div>
+
+          <div class="file" style="padding-left: 24px;">
+            <span class="file-icon" style="color: #42a5f5;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"></path>
+                <path d="M4 6h16"></path>
+                <path d="M4 10h16"></path>
+                <path d="M4 14h16"></path>
+                <path d="M4 18h16"></path>
+              </svg>
+            </span>
+            <span>index.css</span>
+          </div>
+
+          <div class="file">
+            <span class="file-icon" style="color: #ffd54f;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </span>
+            <span>package.json</span>
+          </div>
+
+          <div class="file">
+            <span class="file-icon" style="color: #ffd54f;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+            </span>
+            <span>tsconfig.json</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Editor -->
+      <div class="editor">
+        <div class="tabs">
+          <div class="tab active">
+            <span class="tab-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+            </span>
+            App.tsx
+          </div>
+          <div class="tab">
+            <span class="tab-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"></path>
+                <path d="M4 6h16"></path>
+                <path d="M4 10h16"></path>
+                <path d="M4 14h16"></path>
+                <path d="M4 18h16"></path>
+              </svg>
+            </span>
+            index.css
+          </div>
+        </div>
+        <div class="editor-content">
+          <div style="flex: 1; overflow: auto;">
+            <pre><span class="keyword">import</span> React <span class="keyword">from</span> <span class="string">'react'</span>;
+<span class="keyword">import</span> { useState } <span class="keyword">from</span> <span class="string">'react'</span>;
+<span class="keyword">import</span> { VSCodeLayout } <span class="keyword">from</span> <span class="string">'./components/vscode/layout'</span>;
+<span class="keyword">import</span> { ThemeProvider } <span class="keyword">from</span> <span class="string">'./lib/theme'</span>;
+
+<span class="comment">// Main App component</span>
+<span class="keyword">function</span> <span class="function">App</span>() {
+  <span class="keyword">return</span> (
+    &lt;<span class="type">ThemeProvider</span>&gt;
+      &lt;<span class="type">VSCodeLayout</span>&gt;
+        &lt;<span class="type">div</span> <span class="variable">className</span>=<span class="string">"p-4"</span>&gt;
+          &lt;<span class="type">h1</span> <span class="variable">className</span>=<span class="string">"text-2xl font-bold mb-4"</span>&gt;
+            Welcome to VibeCode
+          &lt;/<span class="type">h1</span>&gt;
+
+          &lt;<span class="type">p</span>&gt;
+            A VS Code-like interface for collaborative coding.
+          &lt;/<span class="type">p</span>&gt;
+        &lt;/<span class="type">div</span>&gt;
+      &lt;/<span class="type">VSCodeLayout</span>&gt;
+    &lt;/<span class="type">ThemeProvider</span>&gt;
+  );
+}
+
+<span class="keyword">export default</span> App;</pre>
+          </div>
+
+          <div class="bottom-panel">
+            <div class="bottom-tabs">
+              <div class="bottom-tab">PROBLEMS</div>
+              <div class="bottom-tab">OUTPUT</div>
+              <div class="bottom-tab">DEBUG CONSOLE</div>
+              <div class="bottom-tab active">TERMINAL</div>
+              <div class="bottom-tab">PORTS</div>
+              <div class="bottom-tab">AUGMENT TEST SET</div>
+              <div style="flex: 1;"></div>
+              <div class="filter-box">
+                <span class="filter-box-icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </span>
+                <input type="text" placeholder="Filter" />
+              </div>
+            </div>
+
+            <div class="bottom-tab-content active terminal-panel">
+              <div class="terminal-content">
+                <div class="terminal-prompt">$ npm start</div>
+                <div>> vibecode@0.1.0 start</div>
+                <div>> vite</div>
+                <div></div>
+                <div>VITE v4.5.0 ready in 124 ms</div>
+                <div></div>
+                <div>➜ Local: http://localhost:5173/</div>
+                <div>➜ Network: use --host to expose</div>
+                <div>➜ press h to show help</div>
+                <div></div>
+                <div class="terminal-prompt">$</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div style="flex: 1; display: flex;">
+        <div class="status-item">
+          <span class="status-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="18" r="3"></circle>
+              <circle cx="6" cy="6" r="3"></circle>
+              <path d="M6 21V9a9 9 0 0 0 9 9"></path>
+            </svg>
+          </span>
+          main
+        </div>
+
+        <div class="status-item">
+          <span class="status-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </span>
+          TypeScript
+        </div>
+
+        <div class="status-item">
+          <span class="status-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"></path>
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+          </span>
+          Ln 24, Col 42
+        </div>
+      </div>
+
+      <div style="display: flex;">
+        <div class="status-item">
+          <span class="status-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 10L14 14L18 18"></path>
+              <path d="M6 6L10 10L6 14"></path>
+            </svg>
+          </span>
+          Spaces: 2
+        </div>
+
+        <div class="status-item">
+          <span class="status-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </span>
+          0 Problems
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const body = document.body;
+
+    themeToggle.addEventListener('click', () => {
+      if (body.classList.contains('theme-dark')) {
+        body.classList.remove('theme-dark');
+        body.classList.add('theme-light');
+      } else if (body.classList.contains('theme-light')) {
+        body.classList.remove('theme-light');
+        body.classList.add('theme-terminal');
+      } else {
+        body.classList.remove('theme-terminal');
+        body.classList.add('theme-dark');
+      }
+    });
+
+    // Make sidebar folders expandable/collapsible
+    const folders = document.querySelectorAll('.folder');
+    folders.forEach(folder => {
+      folder.addEventListener('click', () => {
+        const folderIcon = folder.querySelector('.folder-icon');
+        if (folderIcon.textContent === '►') {
+          folderIcon.textContent = '▼';
+        } else {
+          folderIcon.textContent = '►';
+        }
+      });
+    });
+
+    // Make activity bar icons clickable
+    const activityBarIcons = document.querySelectorAll('.activity-bar-icon');
+    activityBarIcons.forEach(icon => {
+      if (icon.id !== 'theme-toggle') {
+        icon.addEventListener('click', () => {
+          // Remove active class from all icons
+          activityBarIcons.forEach(i => {
+            if (i.id !== 'theme-toggle') {
+              i.classList.remove('active');
+            }
+          });
+          // Add active class to clicked icon
+          icon.classList.add('active');
+
+          // Handle special icons
+          const title = icon.getAttribute('title');
+          if (title === 'Robot') {
+            alert('AI Assistant is ready to help you with coding tasks!');
+          } else if (title === 'Docker') {
+            alert('Docker containers are running. Your development environment is ready.');
+          }
+        });
+      }
+    });
+
+    // Make tabs clickable
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Remove active class from all tabs
+        tabs.forEach(t => t.classList.remove('active'));
+        // Add active class to clicked tab
+        tab.classList.add('active');
+      });
+    });
+
+    // Bottom panel tabs functionality
+    const bottomTabs = document.querySelectorAll('.bottom-tab');
+    const bottomTabContents = document.querySelectorAll('.bottom-tab-content');
+
+    bottomTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Remove active class from all tabs
+        bottomTabs.forEach(t => t.classList.remove('active'));
+        // Add active class to clicked tab
+        tab.classList.add('active');
+
+        // Hide all tab contents
+        bottomTabContents.forEach(content => content.classList.remove('active'));
+
+        // Show the corresponding tab content
+        // For now, we only have the terminal panel active
+        if (tab.textContent === 'TERMINAL') {
+          document.querySelector('.terminal-panel').classList.add('active');
+        }
+      });
+    });
+
+    // Terminal functionality
+    const terminalPanel = document.querySelector('.terminal-panel');
+    const terminalContent = document.querySelector('.terminal-content');
+
+    // Add a command to the terminal
+    function addTerminalCommand(command) {
+      const promptDiv = document.createElement('div');
+      promptDiv.className = 'terminal-prompt';
+      promptDiv.textContent = '$ ' + command;
+      terminalContent.appendChild(promptDiv);
+
+      // Simulate command output
+      if (command === 'ls') {
+        const output = document.createElement('div');
+        output.textContent = 'App.tsx  index.css  node_modules  package.json  tsconfig.json';
+        terminalContent.appendChild(output);
+      } else if (command === 'docker ps') {
+        const output = document.createElement('div');
+        output.textContent = 'CONTAINER ID   IMAGE                    COMMAND                  CREATED          STATUS          PORTS                    NAMES\n' +
+                           'a1b2c3d4e5f6   vibecode/frontend:latest   "/docker-entrypoint.…"   10 minutes ago   Up 10 minutes   0.0.0.0:3000->3000/tcp   vibecode-frontend';
+        terminalContent.appendChild(output);
+      } else if (command === 'help') {
+        const output = document.createElement('div');
+        output.textContent = 'Available commands: ls, docker ps, help, clear';
+        terminalContent.appendChild(output);
+      } else if (command === 'clear') {
+        // Clear the terminal except for the last prompt
+        while (terminalContent.children.length > 1) {
+          terminalContent.removeChild(terminalContent.firstChild);
+        }
+        return;
+      }
+
+      // Add a new prompt
+      const newPrompt = document.createElement('div');
+      newPrompt.className = 'terminal-prompt';
+      newPrompt.textContent = '$';
+      terminalContent.appendChild(newPrompt);
+
+      // Scroll to bottom
+      terminalPanel.scrollTop = terminalPanel.scrollHeight;
+    }
+
+    // Handle terminal input
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && document.activeElement === document.body) {
+        const lastPrompt = terminalContent.lastElementChild;
+        if (lastPrompt && lastPrompt.className === 'terminal-prompt') {
+          const command = lastPrompt.textContent.substring(2);
+          if (command) {
+            addTerminalCommand(command);
+          }
+        }
+      }
+    });
+
+    // Add click event to terminal to focus it
+    terminalPanel.addEventListener('click', () => {
+      const lastPrompt = terminalContent.lastElementChild;
+      if (lastPrompt && lastPrompt.className === 'terminal-prompt' && lastPrompt.textContent === '$') {
+        lastPrompt.textContent = '$ ';
+        // Focus on the document body to capture keystrokes
+        document.body.focus();
+      }
+    });
+  </script>
+</body>
+</html>
