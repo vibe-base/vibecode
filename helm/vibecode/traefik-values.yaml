@@ -2,7 +2,7 @@ deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
   podSecurityContext:
-    fsGroup: 65532 # Ensures Longhorn PVC is group-writable by Traefik (65532)
+    fsGroup: 0 # Ensures Longhorn PVC is group-writable by Traefik (65532)
 
 persistence:
   enabled: true
