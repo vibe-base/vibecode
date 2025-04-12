@@ -39,20 +39,24 @@ persistence:
 ports:
   web:
     port: 80
-    expose: true
-    exposedPort: 80
+    expose: 
+      default: true
     protocol: TCP
   websecure:
     port: 443
-    expose: true
-    exposedPort: 443
+    expose: 
+      default: true
     protocol: TCP
   traefik:
     port: 8080
-    expose: false
+    expose: 
+      default: false
+    protocol: TCP
   metrics:
     port: 9100
-    expose: false
+    expose: 
+      default: false
+    protocol: TCP
 
 # Additional Traefik Arguments
 additionalArguments:
