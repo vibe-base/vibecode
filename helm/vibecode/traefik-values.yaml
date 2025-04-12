@@ -5,10 +5,22 @@ deployment:
   initContainers:
     - name: fix-acme-perms
       image: busybox:1.35
-      command: ["sh", "-c", "chmod 600 /data/acme.json || true"]
+      command:
+        - sh
+        - -c
+        - |
+          touch /data/acme.json
+          chmod 600 /data/acme.json
       volumeMounts:
-        - name: data
+        - name: traefik  # must match the actual PVC name
           mountPath: /data
+
+persistence:
+  enabled: true
+  name: traefik  # same here
+  storageClass: longhorn
+  accessMode: ReadWriteOnce
+  size: 1Gi
 
 ports:
   web:
@@ -27,10 +39,5 @@ additionalArguments:
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-
-persistence:
-  enabled: true
-  name: data  # This is critical, must match the mount name in initContainer
-  storageClass: longhorn
-  accessMode: ReadWriteOnce
-  size: 1Gi
+  - "--providers.kubernetesingress"
+  - "--providers.kubernetescrd"
