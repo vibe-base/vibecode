@@ -1,0 +1,14 @@
+# Helm
+*/charts/
+*/requirements.lock
+*/values.override.yaml
+*/values.dev.yaml
+*/values.prod.yaml
+*/values.staging.yaml
+*/values.local.yaml
+*/values.*.yaml
+!*/values.yaml
+!*/values-production.yaml
+
+# OS specific
+.DS_Store

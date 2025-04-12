@@ -90,6 +90,9 @@ nbproject/
 # Docker
 .docker/
 docker-compose.override.yml
+*.dockerignore
+Dockerfile.simple
+Dockerfile.new
 
 # Logs
 logs/
@@ -133,3 +136,14 @@ web_modules/
 
 # Server configuration
 Caddyfile
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+.kube/
+kubernetes/secrets/
+
+# Helm
+.helm/
+charts/*/charts/
+charts/*/requirements.lock
