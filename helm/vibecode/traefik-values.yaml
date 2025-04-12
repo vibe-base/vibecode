@@ -30,4 +30,15 @@ additionalArguments:
   - "--providers.kubernetesingress"
   - "--providers.kubernetescrd"
 
- 
+# Ensure Traefik container is running as root
+containers:
+  - name: traefik
+    image: traefik:v3.3.5
+    securityContext:
+      runAsUser: 0
+      runAsGroup: 0
+      allowPrivilegeEscalation: true
+      privileged: true
+    volumeMounts:
+      - mountPath: /data
+        name: traefik
