@@ -29,3 +29,5 @@ additionalArguments:
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
   - "--providers.kubernetesingress"
   - "--providers.kubernetescrd"
+
+ 
