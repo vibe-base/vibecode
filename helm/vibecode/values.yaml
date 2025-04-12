@@ -12,6 +12,8 @@ imagePullSecrets:
 # Caddy configuration
 caddy:
   image: docker.io/gigahard/vibecode-caddy:latest
+  config:
+    enabled: true  
   pullPolicy: IfNotPresent
   ports:
     - 80
