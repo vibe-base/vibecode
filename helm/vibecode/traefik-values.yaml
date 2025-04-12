@@ -1,4 +1,3 @@
-# traefik-values.yaml
 deployment:
   hostNetwork: true
   dnsPolicy: ClusterFirstWithHostNet
@@ -27,6 +26,8 @@ additionalArguments:
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+  - "--providers.kubernetesingress"
+  - "--providers.kubernetescrd"
 
 persistence:
   enabled: true
