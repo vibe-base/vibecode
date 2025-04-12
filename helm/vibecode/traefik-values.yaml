@@ -18,12 +18,12 @@ deployment:
       securityContext:
         runAsUser: 0
       volumeMounts:
-        - name: traefik
+        - name: data  # <-- This must match Helm's expected volume name
           mountPath: /data
 
 persistence:
   enabled: true
-  existingClaim: traefik  # <-- CRITICAL: This line explicitly tells Helm to use your existing PVC
+  existingClaim: traefik  # <-- This explicitly tells Helm to reuse your existing PVC named traefik
 
 ports:
   web:
@@ -38,7 +38,7 @@ ports:
 additionalArguments:
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
-  - "--certificatesresolvers.letsencrypt.acme.email=you@email.com"
+  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
   - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
   - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
