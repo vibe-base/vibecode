@@ -40,13 +40,13 @@ ports:
     port: 443
     hostPort: 443
 
-certResolvers:
-  letsencrypt:
-    acme:
-      email: your@email.com
-      storage: /data/acme.json
-      httpChallenge:
-        entryPoint: web
+additionalArguments:
+  - "--entrypoints.web.address=:80"
+  - "--entrypoints.websecure.address=:443"
+  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
 
 persistence:
   enabled: true
