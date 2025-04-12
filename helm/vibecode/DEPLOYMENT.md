@@ -17,6 +17,27 @@ Before deploying VibeCode, make sure Traefik is configured with Let's Encrypt:
 ```bash
 # Create traefik-values.yaml
 cat > traefik-values.yaml << 'EOT'
+deployment:
+  hostNetwork: true
+  dnsPolicy: ClusterFirstWithHostNet
+  initContainers:
+    - name: fix-acme-perms
+      image: busybox:1.35
+      command: ["sh", "-c", "chmod 600 /data/acme.json || true"]
+      volumeMounts:
+        - name: data
+          mountPath: /data
+
+ports:
+  web:
+    port: 80
+    hostPort: 80
+    expose: true
+  websecure:
+    port: 443
+    hostPort: 443
+    expose: true
+
 additionalArguments:
   - "--entrypoints.web.address=:80"
   - "--entrypoints.websecure.address=:443"
@@ -30,16 +51,10 @@ persistence:
   storageClass: longhorn
   accessMode: ReadWriteOnce
   size: 1Gi
-
-deployment:
-  initContainers:
-    - name: fix-acme-perms
-      image: busybox:1.35
-      command: ["sh", "-c", "chmod 600 /data/acme.json || true"]
-      volumeMounts:
-        - name: data
-          mountPath: /data
 EOT
+
+# Update the email address
+sed -i 's/your@email.com/your-actual-email@example.com/' traefik-values.yaml
 
 # Update Traefik
 helm repo add traefik https://traefik.github.io/charts
@@ -49,7 +64,7 @@ helm upgrade --install traefik traefik/traefik \
   -f traefik-values.yaml
 ```
 
-Replace `your@email.com` with your actual email address.
+Replace `your-actual-email@example.com` with your actual email address.
 
 ## Deployment Steps
 
