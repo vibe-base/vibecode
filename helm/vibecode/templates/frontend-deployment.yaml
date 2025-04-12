@@ -4,13 +4,11 @@ metadata:
   name: frontend
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}
-    app: frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: frontend
-      {{- include "vibecode.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
@@ -22,43 +20,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: frontend
+        - name: {{ .Chart.Name }}-frontend
           image: {{ .Values.frontend.image }}
           imagePullPolicy: {{ .Values.frontend.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.frontend.port }}
+            - name: http
+              containerPort: {{ .Values.frontend.port }}
               protocol: TCP
-              name: http
-          env:
-            - name: VITE_GITHUB_CLIENT_ID
-              value: {{ .Values.github.clientId | quote }}
-            - name: VITE_API_URL
-              value: "/api"
-            - name: NODE_ENV
-              value: {{ .Values.environment.name }}
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 5
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}

@@ -4,13 +4,11 @@ metadata:
   name: express
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}
-    app: express
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: express
-      {{- include "vibecode.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
@@ -22,48 +20,12 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: express
+        - name: {{ .Chart.Name }}-express
           image: {{ .Values.express.image }}
           imagePullPolicy: {{ .Values.express.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.express.port }}
+            - name: http
+              containerPort: {{ .Values.express.port }}
               protocol: TCP
-              name: http
-          env:
-            - name: NODE_ENV
-              value: {{ .Values.environment.name }}
-            - name: PORT
-              value: {{ .Values.express.port | quote }}
-            - name: GITHUB_CLIENT_ID
-              value: {{ .Values.github.clientId | quote }}
-            - name: GITHUB_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "vibecode.fullname" . }}-github-secret
-                  key: client-secret
           resources:
             {{- toYaml .Values.express.resources | nindent 12 }}
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 5
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
