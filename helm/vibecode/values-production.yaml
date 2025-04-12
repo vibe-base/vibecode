@@ -6,6 +6,7 @@ service:
 
 # Ingress configuration
 ingress:
+  enabled: true
   host: vibecode.gigahard.ai
 
 # Longhorn configuration
@@ -26,3 +27,4 @@ environment:
 
 frontend:
   port: 3000
+ 
