@@ -1,18 +1,12 @@
 # Production values for VibeCode
 
-# Domain name
-domain: "vibecode.gigahard.ai"
-
 # Service configuration
 service:
   type: ClusterIP
 
-# Enable ingress for standard Kubernetes Ingress
+# Ingress configuration
 ingress:
-  enabled: true
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+  host: vibecode.gigahard.ai
 
 # Longhorn configuration
 longhorn:

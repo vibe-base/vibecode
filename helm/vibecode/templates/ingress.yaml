@@ -1,22 +1,17 @@
-{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: vibecode-ingress
-  labels:
-    {{- include "vibecode.labels" . | nindent 4 }}
+  namespace: {{ .Release.Namespace }}
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
-    {{- with .Values.ingress.annotations }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
 spec:
   tls:
     - hosts:
-        - {{ .Values.domain }}
+        - {{ .Values.ingress.host }}
   rules:
-    - host: {{ .Values.domain }}
+    - host: {{ .Values.ingress.host }}
       http:
         paths:
           - path: /
@@ -26,13 +21,6 @@ spec:
                 name: frontend
                 port:
                   number: {{ .Values.frontend.port }}
-          - path: /api/express
-            pathType: Prefix
-            backend:
-              service:
-                name: express
-                port:
-                  number: {{ .Values.express.port }}
           - path: /api
             pathType: Prefix
             backend:
@@ -40,4 +28,10 @@ spec:
                 name: fastapi
                 port:
                   number: {{ .Values.fastapi.port }}
-{{- end }}
+          - path: /api/express
+            pathType: Prefix
+            backend:
+              service:
+                name: express
+                port:
+                  number: {{ .Values.express.port }}
