@@ -23,3 +23,6 @@ github:
 # Environment configuration
 environment:
   name: production
+
+frontend:
+  port: 3000
