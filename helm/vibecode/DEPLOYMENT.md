@@ -30,23 +30,23 @@ deployment:
 
 ports:
   web:
+    expose:
+      default: true
     port: 80
     hostPort: 80
+  websecure:
     expose:
       default: true
-  websecure:
     port: 443
     hostPort: 443
-    expose:
-      default: true
 
-additionalArguments:
-  - "--entrypoints.web.address=:80"
-  - "--entrypoints.websecure.address=:443"
-  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
-  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+certResolvers:
+  letsencrypt:
+    acme:
+      email: your@email.com
+      storage: /data/acme.json
+      httpChallenge:
+        entryPoint: web
 
 persistence:
   enabled: true
