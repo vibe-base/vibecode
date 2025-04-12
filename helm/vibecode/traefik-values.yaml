@@ -1,44 +1,67 @@
-deployment:
-  hostNetwork: true
-  dnsPolicy: ClusterFirstWithHostNet
-  podSecurityContext:
-    fsGroup: 0            # Ensures the PVC is group-writable by Traefik
-    runAsUser: 0          # Run the container as root user
-    runAsGroup: 0         # Run the container as root group
-
-persistence:
-  enabled: true
-  existingClaim: traefik  # Mounts Longhorn PVC "traefik" as "data" at /data
-
-ports:
-  web:
-    expose:
-      default: true
-    port: 80
-  websecure:
-    expose:
-      default: true
-    port: 443
-
-additionalArguments:
-  - "--entrypoints.web.address=:80"
-  - "--entrypoints.websecure.address=:443"
-  - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
-  - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
-  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
-  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-  - "--providers.kubernetesingress"
-  - "--providers.kubernetescrd"
-
-# Ensure Traefik container is running as root
-containers:
-  - name: traefik
-    image: traefik:v3.3.5
-    securityContext:
-      runAsUser: 0
-      runAsGroup: 0
-      allowPrivilegeEscalation: true
-      privileged: true
-    volumeMounts:
-      - mountPath: /data
-        name: traefik
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: traefik
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: traefik
+  template:
+    metadata:
+      labels:
+        app: traefik
+    spec:
+      securityContext:
+        fsGroup: 0           # Ensures the PVC is group-writable by Traefik
+        runAsUser: 0         # Run the container as root user
+        runAsGroup: 0        # Run the container as root group
+      containers:
+        - name: traefik
+          image: traefik:v3.3.5
+          args:
+            - "--api.dashboard=true"
+            - "--api.insecure=true"
+            - "--entrypoints.web.address=:80"
+            - "--entrypoints.websecure.address=:443"
+            - "--certificatesresolvers.letsencrypt.acme.email=your@email.com"
+            - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
+            - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+            - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+            - "--providers.kubernetesingress"
+            - "--providers.kubernetescrd"
+          volumeMounts:
+            - mountPath: /data
+              name: traefik-data
+      volumes:
+        - name: traefik-data
+          persistentVolumeClaim:
+            claimName: traefik
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: traefik
+  namespace: default
+spec:
+  ports:
+    - port: 80
+      name: web
+    - port: 443
+      name: websecure
+  selector:
+    app: traefik
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: traefik
+  namespace: default
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: longhorn
