@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   name: frontend
   namespace: vibecode
-  labels:
-    app: frontend
 spec:
   replicas: 1
   selector:
@@ -16,7 +14,7 @@ spec:
         app: frontend
     spec:
       containers:
-      - name: vibecode-frontend
+      - name: vibecode-frontend  # This is likely your container name
         image: gigahard/vibecode-client:latest
         imagePullPolicy: Always
         ports:
@@ -29,3 +27,16 @@ spec:
               key: GITHUB_CLIENT_ID
         - name: API_URL
           value: "/api"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: vibecode
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP

@@ -15,10 +15,10 @@ longhorn:
   useExisting: true  # Use existing Longhorn installation
   storageClass: "longhorn"  # Name of the existing StorageClass
 
-# GitHub OAuth configuration (update with your values)
+# GitHub OAuth configuration
 github:
-  clientId: ""
-  clientSecret: ""
+  clientId: "Iv23liWkm8qUlFlLAXKe"    # Add the value from github_client_id.txt
+  clientSecret: "3b5ecd0e5b9a6e7d879a6932cceba52ab71440c6"   # Add the value from github_client_secret.txt
   redirectUri: "https://vibecode.gigahard.ai/auth/callback"
 
 # Environment configuration
@@ -26,5 +26,14 @@ environment:
   name: production
 
 frontend:
-  port: 3000
+  replicaCount: 1
+  image:
+    repository: gigahard/vibecode-client
+    tag: latest
+    pullPolicy: Always
+  service:
+    type: ClusterIP
+    port: 3000
+  containerPort: 3000
+  apiUrl: "/api"
  

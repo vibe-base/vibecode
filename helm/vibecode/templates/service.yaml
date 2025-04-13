@@ -6,13 +6,13 @@ metadata:
     {{- include "vibecode.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
-  ports:
-    - port: {{ .Values.frontend.port }}
-      targetPort: {{ .Values.frontend.port }}
-      protocol: TCP
-      name: http
   selector:
     app: frontend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+      protocol: TCP
 ---
 apiVersion: v1
 kind: Service
@@ -23,10 +23,10 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: {{ .Values.express.port }}
+    - name: http
+      port: {{ .Values.express.port }}
       targetPort: {{ .Values.express.port }}
       protocol: TCP
-      name: http
   selector:
     app: express
 ---
@@ -39,9 +39,9 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: {{ .Values.fastapi.port }}
+    - name: http
+      port: {{ .Values.fastapi.port }}
       targetPort: {{ .Values.fastapi.port }}
       protocol: TCP
-      name: http
   selector:
     app: fastapi

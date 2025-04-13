@@ -4,9 +4,11 @@ FROM node:18-alpine
 # Set working directory
 WORKDIR /app
 
-# Copy package.json and install dependencies
-COPY package.json ./
-RUN npm install
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm ci --only=production
 
 # Copy the rest of the application
 COPY . .
@@ -14,5 +16,5 @@ COPY . .
 # Expose port 5000
 EXPOSE 5000
 
-# Start the Express server with explicit foreground mode
+# Start the Express server
 CMD ["node", "index.js"]

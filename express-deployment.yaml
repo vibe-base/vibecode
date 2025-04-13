@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github-express
+  namespace: vibecode
+  labels:
+    app: github-express
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: github-express
+  template:
+    metadata:
+      labels:
+        app: github-express
+    spec:
+      containers:
+      - name: express
+        image: gigahard/vibecode-express:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        env:
+        - name: GITHUB_CLIENT_ID
+          value: "Iv23liWkm8qUlFlLAXKe"
+        - name: GITHUB_REDIRECT_URI
+          value: "https://vibecode.gigahard.ai/github-callback"
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: github-express
+  namespace: vibecode
+spec:
+  selector:
+    app: github-express
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: github-express-ingress
+  namespace: vibecode
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - vibecode.gigahard.ai
+  rules:
+  - host: vibecode.gigahard.ai
+    http:
+      paths:
+      - path: /api/express
+        pathType: Prefix
+        backend:
+          service:
+            name: github-express
+            port:
+              number: 5000

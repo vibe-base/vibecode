@@ -2,8 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
+  namespace: vibecode
   labels:
-    {{- include "vibecode.labels" . | nindent 4 }}
+    app: frontend
 spec:
   replicas: 1
   selector:
@@ -13,19 +14,15 @@ spec:
     metadata:
       labels:
         app: frontend
-        {{- include "vibecode.selectorLabels" . | nindent 8 }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       containers:
-        - name: {{ .Chart.Name }}-frontend
-          image: {{ .Values.frontend.image }}
-          imagePullPolicy: {{ .Values.frontend.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: {{ .Values.frontend.port }}
-              protocol: TCP
-          resources:
-            {{- toYaml .Values.frontend.resources | nindent 12 }}
+      - name: vibecode-frontend
+        image: gigahard/vibecode-client:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: API_URL
+          value: /api

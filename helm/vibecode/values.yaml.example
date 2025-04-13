@@ -1,0 +1,23 @@
+# Example values file for development environment
+
+# Common Settings
+nameOverride: ""
+fullnameOverride: ""
+
+# Image pull secrets
+imagePullSecrets:
+  - name: regcred
+
+# Ingress Configuration
+ingress:
+  host: dev.example.com
+
+# GitHub OAuth Configuration
+github:
+  clientId: "your-github-client-id"
+  clientSecret: "your-github-client-secret"
+
+# Database Configuration
+database:
+  username: "dbuser"
+  password: "dbpassword"

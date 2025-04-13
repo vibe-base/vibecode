@@ -7,6 +7,7 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
 spec:
+  ingressClassName: traefik
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
@@ -20,4 +21,18 @@ spec:
               service:
                 name: frontend
                 port:
-                  number: {{ .Values.frontend.port }}
+                  number: 3000
+          - path: /api/express
+            pathType: Prefix
+            backend:
+              service:
+                name: express
+                port:
+                  number: 5000
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: fastapi
+                port:
+                  number: 8000

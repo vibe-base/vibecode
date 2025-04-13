@@ -11,9 +11,14 @@ imagePullSecrets:
 
 # Frontend configuration
 frontend:
-  image: docker.io/gigahard/vibecode-client:latest
-  pullPolicy: IfNotPresent
+  replicaCount: 1
+  image:
+    repository: gigahard/vibecode-client
+    tag: latest
+    pullPolicy: Always
   port: 3000
+  containerPort: 3000
+  apiUrl: "/api"
   resources:
     limits:
       cpu: 300m
@@ -50,9 +55,10 @@ fastapi:
 
 # GitHub OAuth configuration
 github:
+  # Credentials are managed via Kubernetes secrets
   clientId: ""
   clientSecret: ""
-  redirectUri: ""
+  redirectUri: "/auth/callback"
 
 # Environment configuration
 environment:
@@ -77,3 +83,10 @@ longhorn:
   enabled: false  # Disable Longhorn installation since it's already installed
   useExisting: true  # Use existing Longhorn installation
   storageClass: "longhorn"  # Name of the existing StorageClass
+
+# Database configuration
+database:
+  name: vibecode
+  username: postgres
+  password: postgres  # Change this in production
+  storage: 10Gi

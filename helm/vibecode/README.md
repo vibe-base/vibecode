@@ -31,6 +31,15 @@ helm install vibecode ./helm/vibecode
 
 ## Configuration
 
+1. Copy the example values files:
+```bash
+cp values.yaml.example values.yaml
+cp values-production.yaml.example values-production.yaml
+```
+
+2. Update the values files with your specific configuration
+3. Never commit the actual values files to version control
+
 The following table lists the configurable parameters of the VibeCode chart and their default values.
 
 ### Common Settings

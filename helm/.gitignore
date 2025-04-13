@@ -1,14 +1,9 @@
-# Helm
-*/charts/
-*/requirements.lock
-*/values.override.yaml
-*/values.dev.yaml
-*/values.prod.yaml
-*/values.staging.yaml
-*/values.local.yaml
-*/values.*.yaml
-!*/values.yaml
-!*/values-production.yaml
+# Helm values files
+*/values*.yaml
+values*.yaml
+traefik-values*.yaml
+!*/values.yaml.example
+!*/values-production.yaml.example
 
 # OS specific
 .DS_Store
