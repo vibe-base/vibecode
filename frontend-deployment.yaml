@@ -20,12 +20,15 @@ spec:
         image: gigahard/vibecode-client:latest
         imagePullPolicy: Always
         ports:
-        - containerPort: 80
+        - containerPort: 3000
         env:
-        - name: GITHUB_CLIENT_ID
+        - name: VITE_API_URL
           valueFrom:
-            secretKeyRef:
-              name: vibecode-github-oauth
-              key: GITHUB_CLIENT_ID
-        - name: API_URL
-          value: "/api"
+            configMapKeyRef:
+              name: frontend-env
+              key: VITE_API_URL
+        - name: VITE_GITHUB_CALLBACK_URL
+          valueFrom:
+            configMapKeyRef:
+              name: frontend-env
+              key: VITE_GITHUB_CALLBACK_URL

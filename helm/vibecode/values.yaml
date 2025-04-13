@@ -90,3 +90,8 @@ database:
   username: postgres
   password: postgres  # Change this in production
   storage: 10Gi
+
+# GitHub OAuth Configuration
+github:
+  clientId: "Iv23liWkm8qUlFlLAXKe"
+  clientSecret: "3b5ecd0e5b9a6e7d879a6932cceba52ab71440c6"

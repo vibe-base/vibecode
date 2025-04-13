@@ -30,3 +30,8 @@ resources:
   limits:
     cpu: 200m
     memory: 256Mi
+
+# GitHub OAuth Configuration
+github:
+  clientId: "your-github-client-id"
+  clientSecret: "your-github-client-secret"

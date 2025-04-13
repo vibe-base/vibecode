@@ -1,7 +1,26 @@
-// Minimal Express server
-const express = require('express');
+const express = require("express");
+const cors = require("cors");
+const axios = require("axios");
+const { auth } = require('express-oauth2-jwt-bearer');
+
 const app = express();
 const port = process.env.PORT || 5000;
+
+// Auth0 JWT validation middleware
+const jwtCheck = auth({
+  audience: 'https://api.vibecode.gigahard.ai',
+  issuerBaseURL: `https://${process.env.VITE_AUTH0_DOMAIN}`,
+  tokenSigningAlg: 'RS256'
+});
+
+// Enable CORS
+app.use(cors());
+app.use(express.json());
+
+// Protected route example
+app.get('/api/protected', jwtCheck, (req, res) => {
+  res.json({ message: 'Protected endpoint accessed successfully' });
+});
 
 console.log('Starting minimal Express server...');
 

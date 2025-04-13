@@ -37,3 +37,7 @@ frontend:
   containerPort: 3000
   apiUrl: "/api"
  
+# GitHub OAuth Configuration
+github:
+  clientId: "your-github-client-id"
+  clientSecret: "your-github-client-secret"

@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: simple-express
+  name: express-github-server
   namespace: vibecode
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: simple-express
+      app: express-github-server
   template:
     metadata:
       labels:
-        app: simple-express
+        app: express-github-server
     spec:
       containers:
       - name: express
@@ -218,11 +218,22 @@ spec:
         - containerPort: 5000
         env:
         - name: GITHUB_CLIENT_ID
-          value: "Iv23liWkm8qUlFlLAXKe"
+          valueFrom:
+            secretKeyRef:
+              name: github-oauth-secret
+              key: GITHUB_CLIENT_ID
         - name: GITHUB_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
               name: github-oauth-secret
               key: GITHUB_CLIENT_SECRET
-        - name: GITHUB_REDIRECT_URI
-          value: "https://vibecode.gigahard.ai/github-callback"
+        - name: VITE_AUTH0_DOMAIN
+          valueFrom:
+            secretKeyRef:
+              name: github-oauth-secret
+              key: VITE_AUTH0_DOMAIN
+        - name: VITE_AUTH0_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-oauth-secret
+              key: VITE_AUTH0_CLIENT_ID
