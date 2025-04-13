@@ -1,0 +1,161 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: profile-iframe
+  namespace: vibecode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: profile-iframe
+  template:
+    metadata:
+      labels:
+        app: profile-iframe
+    spec:
+      containers:
+      - name: node
+        image: node:18-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          # Create a directory for the profile iframe
+          mkdir -p /app
+          cd /app
+          
+          # Create package.json
+          cat > package.json << 'EOF'
+          {
+            "name": "profile-iframe",
+            "version": "1.0.0",
+            "description": "Profile iframe injector",
+            "main": "index.js",
+            "dependencies": {
+              "express": "^4.18.2",
+              "cors": "^2.8.5",
+              "node-fetch": "^2.6.7"
+            }
+          }
+          EOF
+          
+          # Create index.js
+          cat > index.js << 'EOF'
+          const express = require("express");
+          const cors = require("cors");
+          const fetch = require("node-fetch");
+          const app = express();
+          const port = process.env.PORT || 3000;
+
+          // Enable CORS for all routes
+          app.use(cors({
+            origin: "*",
+            methods: ["GET", "POST", "OPTIONS"],
+            allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+            credentials: true
+          }));
+
+          console.log("Starting profile iframe server...");
+
+          // Serve the profile iframe injector script
+          app.get("/profile-iframe.js", (req, res) => {
+            console.log("Profile iframe script requested");
+            
+            const js = `
+            (function() {
+              // Create an iframe for the profile button
+              function createProfileIframe() {
+                // Check if the user is authenticated
+                const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+                if (!isLoggedIn) {
+                  return;
+                }
+                
+                // Create the iframe
+                const iframe = document.createElement('iframe');
+                iframe.src = '/profile-button';
+                iframe.style.position = 'fixed';
+                iframe.style.top = '0';
+                iframe.style.right = '0';
+                iframe.style.width = '200px';
+                iframe.style.height = '60px';
+                iframe.style.border = 'none';
+                iframe.style.zIndex = '9999';
+                iframe.style.backgroundColor = 'transparent';
+                iframe.style.overflow = 'hidden';
+                
+                // Add the iframe to the body
+                document.body.appendChild(iframe);
+                
+                console.log('Profile iframe injected');
+              }
+              
+              // Wait for the DOM to be fully loaded
+              if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                setTimeout(createProfileIframe, 1000);
+              } else {
+                document.addEventListener('DOMContentLoaded', function() {
+                  setTimeout(createProfileIframe, 1000);
+                });
+              }
+              
+              // Also try after a delay to ensure the app is fully rendered
+              setTimeout(createProfileIframe, 2000);
+            })();
+            `;
+            
+            res.setHeader('Content-Type', 'application/javascript');
+            res.send(js);
+          });
+
+          // Start the server
+          app.listen(port, "0.0.0.0", () => {
+            console.log(`Profile iframe server running on port ${port}`);
+          });
+          EOF
+          
+          # Install dependencies
+          npm install
+          
+          # Start the server
+          node index.js
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: profile-iframe
+  namespace: vibecode
+spec:
+  selector:
+    app: profile-iframe
+  ports:
+  - port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: profile-iframe-ingress
+  namespace: vibecode
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    traefik.ingress.kubernetes.io/router.priority: "7000"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: vibecode.gigahard.ai
+    http:
+      paths:
+      - path: /profile-iframe.js
+        pathType: Exact
+        backend:
+          service:
+            name: profile-iframe
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - vibecode.gigahard.ai

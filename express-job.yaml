@@ -1,0 +1,196 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: express-setup
+  namespace: vibecode
+spec:
+  template:
+    spec:
+      containers:
+      - name: express-setup
+        image: node:18-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          # Create a directory for the Express server
+          mkdir -p /app
+          cd /app
+          
+          # Create package.json
+          echo '{
+            "name": "vibecode-express",
+            "version": "1.0.0",
+            "description": "Simple Express server for GitHub OAuth callback",
+            "main": "index.js",
+            "dependencies": {
+              "express": "^4.18.2"
+            }
+          }' > package.json
+          
+          # Create index.js
+          echo '// Minimal Express server
+          const express = require("express");
+          const app = express();
+          const port = process.env.PORT || 5000;
+
+          console.log("Starting minimal Express server...");
+
+          // Simple route
+          app.get("/", (req, res) => {
+            res.send("Express server is running");
+          });
+
+          // Health check endpoint
+          app.get("/health", (req, res) => {
+            res.status(200).send("OK");
+          });
+
+          // GitHub callback route
+          app.get("/api/express/auth/github/callback", (req, res) => {
+            const code = req.query.code || "no-code";
+            console.log(`GitHub callback received with code: ${code}`);
+            
+            res.json({ 
+              message: "GitHub callback received",
+              code: code,
+              timestamp: new Date().toISOString()
+            });
+          });
+
+          // Start the server
+          app.listen(port, "0.0.0.0", () => {
+            console.log(`Server running on port ${port}`);
+          });
+
+          // Keep the process alive
+          setInterval(() => {
+            console.log("Express server is still running...");
+          }, 60000);' > index.js
+          
+          # Install dependencies
+          npm install
+          
+          # Create a tarball of the Express server
+          tar -czf /data/express-server.tar.gz .
+          
+          echo "Express server setup complete"
+        volumeMounts:
+        - name: express-data
+          mountPath: /data
+      restartPolicy: Never
+      volumes:
+      - name: express-data
+        persistentVolumeClaim:
+          claimName: express-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: express-data
+  namespace: vibecode
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: longhorn
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: express-server
+  namespace: vibecode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: express-server
+  template:
+    metadata:
+      labels:
+        app: express-server
+    spec:
+      initContainers:
+      - name: init-express
+        image: node:18-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          # Extract the Express server from the tarball
+          mkdir -p /app
+          cd /app
+          if [ -f /data/express-server.tar.gz ]; then
+            tar -xzf /data/express-server.tar.gz
+            echo "Express server extracted successfully"
+          else
+            echo "Express server tarball not found"
+            exit 1
+          fi
+        volumeMounts:
+        - name: express-data
+          mountPath: /data
+        - name: app-dir
+          mountPath: /app
+      containers:
+      - name: express
+        image: node:18-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          cd /app
+          node index.js
+        ports:
+        - containerPort: 5000
+        env:
+        - name: GITHUB_CLIENT_ID
+          value: "Iv23liWkm8qUlFlLAXKe"
+        - name: GITHUB_REDIRECT_URI
+          value: "https://vibecode.gigahard.ai/github-callback"
+        volumeMounts:
+        - name: app-dir
+          mountPath: /app
+      volumes:
+      - name: express-data
+        persistentVolumeClaim:
+          claimName: express-data
+      - name: app-dir
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: express-server
+  namespace: vibecode
+spec:
+  selector:
+    app: express-server
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: express-server-ingress
+  namespace: vibecode
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  ingressClassName: traefik
+  tls:
+  - hosts:
+    - vibecode.gigahard.ai
+  rules:
+  - host: vibecode.gigahard.ai
+    http:
+      paths:
+      - path: /api/express
+        pathType: Prefix
+        backend:
+          service:
+            name: express-server
+            port:
+              number: 5000

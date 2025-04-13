@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: vibecode
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: vibecode-frontend
+        image: gigahard/vibecode-client:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        - containerPort: 80
+        env:
+        - name: GITHUB_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              key: GITHUB_CLIENT_ID
+              name: vibecode-github-oauth
+        - name: API_URL
+          value: /api
+        - name: VITE_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: frontend-env
+              key: VITE_API_URL
+        - name: VITE_GITHUB_CALLBACK_URL
+          valueFrom:
+            configMapKeyRef:
+              name: frontend-env
+              key: VITE_GITHUB_CALLBACK_URL

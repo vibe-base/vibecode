@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: localhost-8000
+  namespace: vibecode
+spec:
+  ports:
+  - port: 8000
+    targetPort: 5000
+  selector:
+    app: simple-express
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: localhost-ingress
+  namespace: vibecode
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/router.priority: "200"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: vibecode.gigahard.ai
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: localhost-8000
+            port:
+              number: 8000

@@ -1,5 +1,5 @@
-# Use Node.js 18 Alpine as the base image
-FROM node:18-alpine
+# Build stage
+FROM node:18-alpine AS build
 
 # Set working directory
 WORKDIR /app
@@ -8,11 +8,33 @@ WORKDIR /app
 COPY package.json ./
 RUN npm install
 
-# Copy the rest of the application
-COPY . .
+# Copy only necessary files
+COPY src/ ./src/
+COPY public/ ./public/
+COPY index.html ./
+COPY tsconfig.json ./
+COPY vite.config.ts ./
+COPY tailwind.config.js ./
+COPY postcss.config.js ./
 
-# Expose port 5000
-EXPOSE 5000
+# Build the application
+RUN npm run build
 
-# Start the Express server with explicit foreground mode
-CMD ["node", "index.js"]
+# Production stage
+FROM nginx:alpine
+
+# Copy the built application
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Copy environment script
+COPY env.sh /docker-entrypoint.d/40-env.sh
+RUN chmod +x /docker-entrypoint.d/40-env.sh
+
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

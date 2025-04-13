@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-fix
+  namespace: vibecode
+data:
+  "AuthCallback.js": |
+    // This script will be injected into the frontend to fix the GitHub callback URL
+    (function() {
+      console.log('AuthCallback fix script loaded');
+      
+      // Override fetch to intercept calls to localhost:8000
+      const originalFetch = window.fetch;
+      window.fetch = function(url, options) {
+        if (typeof url === 'string' && url.includes('localhost:8000/api/auth/github/exchange')) {
+          console.log('Intercepting fetch to localhost:8000');
+          // Replace with the correct URL
+          const code = new URL(url).searchParams.get('code');
+          const newUrl = `https://vibecode.gigahard.ai/api/auth/github/exchange?code=${code}`;
+          console.log('Redirecting to:', newUrl);
+          return originalFetch(newUrl, options);
+        }
+        return originalFetch.apply(this, arguments);
+      };
+      
+      console.log('Fetch override installed');
+    })();
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-patch
+  namespace: vibecode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend-patch
+  template:
+    metadata:
+      labels:
+        app: frontend-patch
+    spec:
+      containers:
+      - name: frontend-patch
+        image: busybox
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          echo "Waiting for frontend pod to be ready..."
+          sleep 10
+          
+          # Find the frontend pod
+          FRONTEND_POD=$(wget -qO- --header "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" --no-check-certificate https://kubernetes.default.svc/api/v1/namespaces/vibecode/pods?labelSelector=app%3Dfrontend | grep -o '"name": "frontend-[^"]*' | head -1 | cut -d'"' -f4)
+          
+          if [ -z "$FRONTEND_POD" ]; then
+            echo "Frontend pod not found"
+            exit 1
+          fi
+          
+          echo "Found frontend pod: $FRONTEND_POD"
+          
+          # Copy the fix script to the frontend pod
+          echo "Copying fix script to frontend pod..."
+          cat /config/AuthCallback.js > /tmp/AuthCallback.js
+          
+          # Use kubectl exec to inject the script
+          wget -qO- --header "Authorization: Bearer $(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" --no-check-certificate --method=POST --body-file=/tmp/AuthCallback.js "https://kubernetes.default.svc/api/v1/namespaces/vibecode/pods/$FRONTEND_POD/exec?command=sh&command=-c&command=echo%20%27%3Cscript%3E$(cat)%3C/script%3E%27%20%3E%3E%20/usr/share/nginx/html/index.html"
+          
+          echo "Fix script injected"
+          
+          # Keep the container running for logs
+          echo "Patch complete, sleeping..."
+          sleep 3600
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: frontend-fix

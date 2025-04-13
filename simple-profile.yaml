@@ -1,0 +1,186 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: simple-profile-js
+  namespace: vibecode
+data:
+  profile-component.js: |
+    (function() {
+      console.log("Profile component script loaded");
+      
+      // Create the profile component
+      function createProfileComponent() {
+        console.log("Creating profile component");
+        
+        // Get the user data from localStorage
+        const userDataStr = localStorage.getItem('user');
+        let username = 'User';
+        
+        try {
+          if (userDataStr) {
+            const userData = JSON.parse(userDataStr);
+            username = userData.login || 'User';
+          }
+        } catch (err) {
+          console.error('Error parsing user data:', err);
+        }
+        
+        // Create the container
+        const container = document.createElement('div');
+        container.style.position = 'fixed';
+        container.style.top = '10px';
+        container.style.right = '10px';
+        container.style.zIndex = '9999';
+        container.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+        container.style.padding = '5px 10px';
+        container.style.borderRadius = '5px';
+        container.style.color = 'white';
+        container.style.fontFamily = 'Arial, sans-serif';
+        container.style.fontSize = '14px';
+        
+        // Create the username display
+        const usernameSpan = document.createElement('span');
+        usernameSpan.textContent = username + ' | ';
+        
+        // Create the logout link
+        const logoutLink = document.createElement('a');
+        logoutLink.textContent = 'Logout';
+        logoutLink.href = '#';
+        logoutLink.style.color = 'white';
+        logoutLink.style.textDecoration = 'none';
+        logoutLink.style.fontWeight = 'bold';
+        
+        // Add logout functionality
+        logoutLink.addEventListener('click', function(e) {
+          e.preventDefault();
+          console.log('Logout clicked');
+          
+          // Clear localStorage
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('accessToken');
+          localStorage.removeItem('isLoggedIn');
+          localStorage.removeItem('user');
+          
+          // Redirect to login page
+          window.location.href = '/login';
+        });
+        
+        // Add elements to the container
+        container.appendChild(usernameSpan);
+        container.appendChild(logoutLink);
+        
+        return container;
+      }
+      
+      // Wait for the DOM to be fully loaded
+      function injectProfileComponent() {
+        console.log("Checking authentication status");
+        
+        // Check if the user is authenticated
+        const authToken = localStorage.getItem('auth_token');
+        if (!authToken) {
+          console.log("No auth token found, not injecting profile component");
+          return;
+        }
+        
+        // Check if we're on the main page (not login or callback)
+        if (window.location.pathname === '/login' || window.location.pathname === '/github-callback') {
+          console.log("On login or callback page, not injecting profile component");
+          return;
+        }
+        
+        console.log("User is authenticated, injecting profile component");
+        
+        // Create the profile component
+        const profileComponent = createProfileComponent();
+        
+        // Inject the profile component into the DOM
+        document.body.appendChild(profileComponent);
+        
+        console.log('Profile component injected');
+      }
+      
+      // Try to inject immediately if the DOM is already loaded
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        console.log("Document already loaded, injecting profile component");
+        setTimeout(injectProfileComponent, 1000);
+      } else {
+        // Otherwise wait for the DOM to be loaded
+        console.log("Waiting for document to load");
+        document.addEventListener('DOMContentLoaded', function() {
+          console.log("Document loaded, injecting profile component");
+          setTimeout(injectProfileComponent, 1000);
+        });
+      }
+      
+      // Also try after a delay to ensure the app is fully rendered
+      console.log("Setting timeout for profile component injection");
+      setTimeout(injectProfileComponent, 2000);
+    })();
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-profile
+  namespace: vibecode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simple-profile
+  template:
+    metadata:
+      labels:
+        app: simple-profile
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: js-volume
+          mountPath: /usr/share/nginx/html
+      volumes:
+      - name: js-volume
+        configMap:
+          name: simple-profile-js
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: simple-profile
+  namespace: vibecode
+spec:
+  selector:
+    app: simple-profile
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: simple-profile-ingress
+  namespace: vibecode
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    traefik.ingress.kubernetes.io/router.priority: "10000"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: vibecode.gigahard.ai
+    http:
+      paths:
+      - path: /profile-component.js
+        pathType: Exact
+        backend:
+          service:
+            name: simple-profile
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - vibecode.gigahard.ai

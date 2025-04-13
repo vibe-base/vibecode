@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: localhost-service-direct-fix4
+  namespace: default
+spec:
+  type: ExternalName
+  externalName: localhost-service-direct-fix3.vibecode.svc.cluster.local
+  ports:
+  - port: 8000
+    targetPort: 8000

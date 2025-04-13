@@ -1,0 +1,48 @@
+# Global options
+{
+	# Global options
+	admin off
+	# Email for Let's Encrypt notifications
+	email admin@example.com
+	# Set auto HTTPS to off for Kubernetes deployment
+	auto_https off
+	# Disable HTTP challenge for k3s
+	acme_http off
+}
+
+# Handle HTTP and HTTPS
+:80, :443 {
+	# For Kubernetes, we'll use a specific domain
+	tls {
+		# Use self-signed certificate for development
+		self_signed
+	}
+
+	# Route to frontend
+	handle_path / {
+		reverse_proxy frontend:3000
+	}
+
+	# Route to Express API
+	handle_path /api/express/* {
+		uri strip_prefix /api/express
+		reverse_proxy express:5000
+	}
+
+	# Route to FastAPI
+	handle_path /api/* {
+		uri strip_prefix /api
+		reverse_proxy fastapi:8000
+	}
+
+	# Health check
+	handle /health {
+		respond "OK" 200
+	}
+
+	# Log requests
+	log {
+		output stdout
+		format console
+	}
+}

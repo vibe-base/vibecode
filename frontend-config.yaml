@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-env
+  namespace: vibecode
+data:
+  VITE_API_URL: "https://vibecode.gigahard.ai/api"
+  VITE_GITHUB_CALLBACK_URL: "https://vibecode.gigahard.ai/api/auth/github/exchange"

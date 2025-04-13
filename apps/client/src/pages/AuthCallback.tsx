@@ -25,9 +25,10 @@ export default function AuthCallback() {
         setExchanging(true);
         console.log('Exchanging GitHub code for token');
 
-        // Use a hardcoded URL for testing
-        const backendUrl = `http://localhost:8000/api/auth/github/exchange?code=${code}`;
-        console.log(`Using hardcoded backend URL: ${backendUrl}`);
+        // Use the GitHub callback URL from environment variables or fallback to the current origin
+        const githubCallbackUrl = import.meta.env.VITE_GITHUB_CALLBACK_URL || `${window.location.origin}/api/auth/github/exchange`;
+        const backendUrl = `${githubCallbackUrl}?code=${code}`;
+        console.log(`Using GitHub callback URL: ${githubCallbackUrl}`);
         console.log(`Calling backend API: ${backendUrl}`);
 
         const response = await fetch(backendUrl, {

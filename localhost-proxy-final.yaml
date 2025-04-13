@@ -1,0 +1,126 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: localhost-proxy-final
+  namespace: vibecode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: localhost-proxy-final
+  template:
+    metadata:
+      labels:
+        app: localhost-proxy-final
+    spec:
+      hostAliases:
+      - ip: "127.0.0.1"
+        hostnames:
+        - "localhost"
+      containers:
+      - name: node
+        image: node:18-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          # Create a directory for the proxy server
+          mkdir -p /app
+          cd /app
+          
+          # Create package.json
+          echo '{
+            "name": "localhost-proxy",
+            "version": "1.0.0",
+            "description": "Proxy server for localhost:8000",
+            "main": "index.js",
+            "dependencies": {
+              "express": "^4.18.2",
+              "cors": "^2.8.5",
+              "axios": "^1.6.7"
+            }
+          }' > package.json
+          
+          # Create index.js
+          echo 'const express = require("express");
+          const cors = require("cors");
+          const axios = require("axios");
+          const app = express();
+          const port = process.env.PORT || 8000;
+
+          // Enable CORS for all routes
+          app.use(cors({
+            origin: "*",
+            methods: ["GET", "POST", "OPTIONS"],
+            allowedHeaders: ["Content-Type", "Authorization", "Accept"],
+            credentials: true
+          }));
+
+          console.log("Starting localhost proxy server...");
+
+          // Handle all requests
+          app.all("*", async (req, res) => {
+            const url = req.url;
+            console.log(`Received request: ${req.method} ${url}`);
+            console.log(`Headers: ${JSON.stringify(req.headers)}`);
+            
+            // Check if this is a request to the GitHub OAuth callback endpoint
+            if (url.includes("/api/auth/github/exchange")) {
+              console.log("Proxying request to Express server");
+              
+              try {
+                // Forward the request to the Express server
+                const response = await axios({
+                  method: req.method,
+                  url: `http://express-8000:8000${url}`,
+                  headers: {
+                    ...req.headers,
+                    host: "express-8000"
+                  },
+                  data: req.body,
+                  validateStatus: () => true
+                });
+                
+                console.log(`Response status: ${response.status}`);
+                
+                // Set the response headers
+                Object.entries(response.headers).forEach(([key, value]) => {
+                  res.set(key, value);
+                });
+                
+                // Send the response
+                res.status(response.status).send(response.data);
+              } catch (error) {
+                console.error("Error proxying request:", error.message);
+                res.status(500).json({ error: "Error proxying request" });
+              }
+            } else {
+              console.log("Not a GitHub OAuth callback request, returning 404");
+              res.status(404).send("Not found");
+            }
+          });
+
+          // Start the server
+          app.listen(port, "0.0.0.0", () => {
+            console.log(`Localhost proxy server running on port ${port}`);
+          });' > index.js
+          
+          # Install dependencies
+          npm install
+          
+          # Start the proxy server
+          node index.js
+        ports:
+        - containerPort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localhost-proxy-final
+  namespace: vibecode
+spec:
+  selector:
+    app: localhost-proxy-final
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP

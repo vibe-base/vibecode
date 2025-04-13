@@ -1,0 +1,162 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: script-injector
+  namespace: vibecode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: script-injector
+  template:
+    metadata:
+      labels:
+        app: script-injector
+    spec:
+      containers:
+      - name: node
+        image: node:18-alpine
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          # Create a directory for the script injector
+          mkdir -p /app
+          cd /app
+          
+          # Create package.json
+          cat > package.json << 'EOF'
+          {
+            "name": "script-injector",
+            "version": "1.0.0",
+            "description": "Script injector for the frontend",
+            "main": "index.js",
+            "dependencies": {
+              "express": "^4.18.2",
+              "cors": "^2.8.5",
+              "node-fetch": "^2.6.7"
+            }
+          }
+          EOF
+          
+          # Create index.js
+          cat > index.js << 'EOF'
+          const express = require("express");
+          const cors = require("cors");
+          const fetch = require("node-fetch");
+          const app = express();
+          const port = process.env.PORT || 3000;
+
+          // Enable CORS for all routes
+          app.use(cors({
+            origin: "*",
+            methods: ["GET", "POST", "OPTIONS"],
+            allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
+            credentials: true
+          }));
+
+          console.log("Starting script injector server...");
+
+          // Proxy the frontend index.html and inject our script
+          app.get("/", async (req, res) => {
+            console.log("Frontend index.html requested");
+            
+            try {
+              // Fetch the original index.html from the frontend service
+              const response = await fetch("http://frontend:3000/");
+              const html = await response.text();
+              
+              // Inject our script before the closing body tag
+              const injectedHtml = html.replace(
+                "</body>",
+                `<script src="/profile-component.js"></script></body>`
+              );
+              
+              // Set the content type and send the modified HTML
+              res.setHeader("Content-Type", "text/html");
+              res.send(injectedHtml);
+            } catch (error) {
+              console.error("Error fetching frontend index.html:", error);
+              res.status(500).send("Error fetching frontend index.html");
+            }
+          });
+
+          // Proxy all other requests to the frontend service
+          app.use(async (req, res) => {
+            try {
+              const url = `http://frontend:3000${req.url}`;
+              console.log(`Proxying request to: ${url}`);
+              
+              const response = await fetch(url, {
+                method: req.method,
+                headers: req.headers,
+                body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined
+              });
+              
+              // Copy the response headers
+              Object.entries(response.headers.raw()).forEach(([key, value]) => {
+                res.setHeader(key, value);
+              });
+              
+              // Send the response
+              res.status(response.status);
+              
+              const buffer = await response.buffer();
+              res.send(buffer);
+            } catch (error) {
+              console.error(`Error proxying request to ${req.url}:`, error);
+              res.status(500).send(`Error proxying request to ${req.url}`);
+            }
+          });
+
+          // Start the server
+          app.listen(port, "0.0.0.0", () => {
+            console.log(`Script injector server running on port ${port}`);
+          });
+          EOF
+          
+          # Install dependencies
+          npm install
+          
+          # Start the server
+          node index.js
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: script-injector
+  namespace: vibecode
+spec:
+  selector:
+    app: script-injector
+  ports:
+  - port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: script-injector-ingress
+  namespace: vibecode
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+    traefik.ingress.kubernetes.io/router.priority: "8000"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: vibecode.gigahard.ai
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: script-injector
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - vibecode.gigahard.ai
