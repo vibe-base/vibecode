@@ -371,6 +371,85 @@
     .variable {
       color: #9cdcfe;
     }
+
+    /* User login section */
+    .user-login {
+      position: absolute;
+      top: 0;
+      right: 10px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .user-login-button {
+      display: flex;
+      align-items: center;
+      background-color: transparent;
+      color: var(--editor-fg);
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .user-login-button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background-color: #2d89ef;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      font-weight: bold;
+    }
+
+    .user-dropdown {
+      position: absolute;
+      top: 36px;
+      right: 0;
+      background-color: var(--sidebar-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      width: 200px;
+      display: none;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .user-dropdown.active {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 8px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .dropdown-item:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .dropdown-item-icon {
+      margin-right: 8px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .dropdown-divider {
+      height: 1px;
+      background-color: var(--border-color);
+      margin: 4px 0;
+    }
   </style>
 </head>
 <body class="theme-dark">
@@ -557,6 +636,45 @@
 
       <!-- Editor -->
       <div class="editor">
+        <!-- User Login Section -->
+        <div class="user-login">
+          <button id="user-login-button" class="user-login-button">
+            <div class="user-avatar">G</div>
+            <span>Sign In</span>
+          </button>
+          <div id="user-dropdown" class="user-dropdown">
+            <a href="signin.html" class="dropdown-item">
+              <span class="dropdown-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+              </span>
+              <span>Sign in</span>
+            </a>
+            <div class="dropdown-item">
+              <span class="dropdown-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="8.5" cy="7" r="4"></circle>
+                  <line x1="20" y1="8" x2="20" y2="14"></line>
+                  <line x1="23" y1="11" x2="17" y2="11"></line>
+                </svg>
+              </span>
+              <span>Create account</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item">
+              <span class="dropdown-item-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+              </span>
+              <span>Settings</span>
+            </div>
+          </div>
+        </div>
         <div class="tabs">
           <div class="tab active">
             <span class="tab-icon">
@@ -862,6 +980,45 @@
         // Focus on the document body to capture keystrokes
         document.body.focus();
       }
+    });
+
+    // User login dropdown functionality
+    const userLoginButton = document.getElementById('user-login-button');
+    const userDropdown = document.getElementById('user-dropdown');
+
+    userLoginButton.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userDropdown.classList.toggle('active');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!userLoginButton.contains(e.target) && !userDropdown.contains(e.target)) {
+        userDropdown.classList.remove('active');
+      }
+    });
+
+    // Handle dropdown item clicks
+    const dropdownItems = document.querySelectorAll('.dropdown-item');
+    dropdownItems.forEach(item => {
+      // Skip items that are links (they'll navigate naturally)
+      if (item.tagName === 'A') {
+        return;
+      }
+
+      item.addEventListener('click', () => {
+        // For demo purposes, just close the dropdown
+        userDropdown.classList.remove('active');
+
+        // You could add actual login/signup functionality here
+        const itemText = item.querySelector('span:last-child').textContent;
+        if (itemText === 'Create account') {
+          // Redirect to sign up page
+          window.location.href = 'signin.html?mode=signup';
+        } else if (itemText === 'Settings') {
+          alert('Settings clicked. This would open settings in a real application.');
+        }
+      });
     });
   </script>
 </body>
