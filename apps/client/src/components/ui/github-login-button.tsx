@@ -12,13 +12,17 @@ export function GitHubLoginButton({ className }: GitHubLoginButtonProps) {
     try {
       setIsLoading(true);
 
-      // Use our backend API to initiate the GitHub OAuth flow
-      // Make sure to use the full URL to avoid any path resolution issues
-      const apiUrl = 'https://vibecode.gigahard.ai/api/auth/github';
-      console.log(`Redirecting to GitHub OAuth: ${apiUrl}`);
+      // Direct link to GitHub's OAuth page, similar to GoogleLoginButton
+      const clientId = 'Iv23liWkm8qUlFlLAXKe';
+      const redirectUri = encodeURIComponent('https://vibecode.gigahard.ai/github-callback');
+      const scope = encodeURIComponent('user:email');
+
+      const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
+
+      console.log(`Redirecting to GitHub OAuth: ${githubAuthUrl}`);
 
       // Open in the same window
-      window.location.href = apiUrl;
+      window.location.href = githubAuthUrl;
     } catch (error) {
       console.error('Failed to redirect to GitHub:', error);
       setIsLoading(false);

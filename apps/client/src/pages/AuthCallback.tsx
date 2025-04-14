@@ -5,100 +5,106 @@ import { useAuth } from '@/lib/auth';
 export default function AuthCallback() {
   const navigate = useNavigate();
   const { setUser, setToken } = useAuth();
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState('Processing your login...');
 
   useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get('code');
-
-    if (!code) {
-      setError('No authorization code received');
-      setIsLoading(false);
-      return;
-    }
-
-    const exchangeCode = async () => {
+    const handleCallback = async () => {
       try {
-        console.log('Exchanging GitHub code for token');
+        // Get the code from the URL
+        const code = new URLSearchParams(window.location.search).get('code');
 
-        // Send the code to our backend API
+        if (!code) {
+          setStatus('Error: No authorization code received from GitHub');
+          return;
+        }
+
+        setStatus('Authenticating with GitHub...');
+
+        // Check if we have a token in the URL (similar to Google OAuth flow)
+        const token = new URLSearchParams(window.location.search).get('token');
+
+        if (token) {
+          // If we have a token, process it directly
+          setStatus('Token found in URL, processing...');
+          return processToken(token);
+        }
+
+        // Otherwise, exchange the code for a token via API
+        setStatus('Exchanging code for token...');
+
+        // Send the code to our backend
         const response = await fetch('/api/auth/github/callback', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
           },
           body: JSON.stringify({ code }),
         });
 
         if (!response.ok) {
-          console.error(`Server error: ${response.status}`);
-          const errorText = await response.text();
-          console.error(`Response body: ${errorText}`);
-          throw new Error(`Authentication failed: ${response.statusText}`);
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to authenticate with GitHub');
         }
 
-        // Try to parse the response as JSON
-        let data;
-        try {
-          data = await response.json();
-          console.log('Received token response:', data);
-        } catch (jsonError) {
-          console.error('Failed to parse JSON response:', jsonError);
-          throw new Error('Invalid response format from server');
-        }
+        const data = await response.json();
 
-        if (!data.token) {
-          throw new Error('No token received from server');
-        }
-
-        // Store the token and user data
+        // Save the token and user data
         localStorage.setItem('token', data.token);
-        if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
+        localStorage.setItem('user', JSON.stringify(data.user));
 
         // Update auth context
         setToken(data.token);
         setUser(data.user);
 
-        // Redirect to home page
-        navigate('/', { replace: true });
-      } catch (err) {
-        console.error('Authentication error:', err);
-        setError(err instanceof Error ? err.message : 'Authentication failed');
-        setIsLoading(false);
+        // Redirect to the main app
+        setStatus('Login successful! Redirecting...');
+        setTimeout(() => {
+          navigate('/');
+        }, 1000);
+      } catch (error) {
+        console.error('GitHub callback error:', error);
+        setStatus(`Error: ${error instanceof Error ? error.message : 'Failed to authenticate'}`);
       }
     };
 
-    exchangeCode();
+    const processToken = (token: string) => {
+      // Create a mock response to maintain compatibility with the rest of the code
+      const data = {
+        token,
+        user: {
+          id: 'github-user',
+          username: 'GitHub User',
+          provider: 'github'
+        }
+      };
+
+      // Save the token and user data
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // Update auth context
+      setToken(data.token);
+      setUser(data.user);
+
+      // Redirect to the main app
+      setStatus('Login successful! Redirecting...');
+      setTimeout(() => {
+        navigate('/');
+      }, 1000);
+    };
+
+    handleCallback();
   }, [navigate, setToken, setUser]);
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="max-w-md w-full p-6 text-center">
-          <h1 className="text-2xl font-bold mb-4">Authentication Failed</h1>
-          <p className="text-red-500 mb-4">{error}</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-          >
-            Return to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="max-w-md w-full p-6 text-center">
         <h1 className="text-2xl font-bold mb-4">GitHub Authentication</h1>
-        <div className="flex justify-center mb-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="animate-pulse">
+          <p className="text-muted-foreground">{status}</p>
         </div>
-        <p className="text-muted-foreground">Connecting to GitHub...</p>
       </div>
     </div>
   );

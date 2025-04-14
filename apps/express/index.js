@@ -164,7 +164,8 @@ function handleGitHubCallback(req, res) {
     }
 
     // Otherwise redirect with token as query parameter
-    res.redirect(`${redirectUri}?token=${token}`);
+    // Include source=github to indicate this is from GitHub OAuth (similar to Google OAuth)
+    res.redirect(`${redirectUri}?token=${token}&source=github`);
   } catch (error) {
     console.error('Error in GitHub callback:', error);
     res.redirect('/login?error=github_callback_error');

@@ -72,10 +72,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Save token to localStorage
       localStorage.setItem('token', urlToken);
 
-      // If we're on the root path and have a token, this might be from Google OAuth
+      // If we're on the root path and have a token, this might be from OAuth
       // But we don't want to create a redirect loop, so we'll just process the token here
-      if (window.location.pathname === '/' && urlParams.has('source') && urlParams.get('source') === 'google') {
-        console.log('Processing Google OAuth token directly');
+      if (window.location.pathname === '/' && urlParams.has('source')) {
+        const source = urlParams.get('source');
+        console.log(`Processing ${source} OAuth token directly`);
         // We'll fetch user data directly instead of redirecting
         fetchUserData(urlToken);
         // Remove token and source from URL to prevent it from being shared
