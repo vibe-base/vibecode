@@ -17,22 +17,6 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: express
-  labels:
-    {{- include "vibecode.labels" . | nindent 4 }}
-spec:
-  type: ClusterIP
-  ports:
-    - name: http
-      port: {{ .Values.express.port }}
-      targetPort: {{ .Values.express.port }}
-      protocol: TCP
-  selector:
-    app: express
----
-apiVersion: v1
-kind: Service
-metadata:
   name: fastapi
   labels:
     {{- include "vibecode.labels" . | nindent 4 }}

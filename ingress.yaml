@@ -1,0 +1,76 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"traefik.ingress.kubernetes.io/router.entrypoints":"websecure","traefik.ingress.kubernetes.io/router.priority":"100","traefik.ingress.kubernetes.io/router.tls.certresolver":"letsencrypt"},"name":"vibecode-ingress","namespace":"vibecode"},"spec":{"ingressClassName":"traefik","rules":[{"host":"vibecode.gigahard.ai","http":{"paths":[{"backend":{"service":{"name":"express","port":{"number":5000}}},"path":"/api/express","pathType":"Prefix"},{"backend":{"service":{"name":"express","port":{"number":5000}}},"path":"/github-callback","pathType":"Exact"},{"backend":{"service":{"name":"fastapi","port":{"number":8000}}},"path":"/api/fastapi","pathType":"Prefix"},{"backend":{"service":{"name":"frontend","port":{"number":3000}}},"path":"/","pathType":"Prefix"}]}}],"tls":[{"hosts":["vibecode.gigahard.ai"]}]}}
+    meta.helm.sh/release-name: vibecode
+    meta.helm.sh/release-namespace: vibecode
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.priority: "100"
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+  creationTimestamp: "2025-04-13T21:24:26Z"
+  generation: 3
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  name: vibecode-ingress
+  namespace: vibecode
+  resourceVersion: "289095"
+  uid: 5aa44ef4-bd9c-4f07-86e1-0a8dad9eea5a
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: vibecode.gigahard.ai
+    http:
+      paths:
+      - backend:
+          service:
+            name: express
+            port:
+              number: 5000
+        path: /api/express
+        pathType: Prefix
+      - backend:
+          service:
+            name: express
+            port:
+              number: 5000
+        path: /api/auth
+        pathType: Prefix
+      - backend:
+          service:
+            name: express
+            port:
+              number: 5000
+        path: /github-callback
+        pathType: Exact
+      - backend:
+          service:
+            name: express
+            port:
+              number: 5000
+        path: /auth/google/callback
+        pathType: Exact
+      - backend:
+          service:
+            name: fastapi
+            port:
+              number: 8000
+        path: /api/fastapi
+        pathType: Prefix
+      - backend:
+          service:
+            name: frontend
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix
+  tls:
+  - hosts:
+    - vibecode.gigahard.ai
+status:
+  loadBalancer:
+    ingress:
+    - ip: 155.138.200.220
+    - ip: 45.77.86.22
+    - ip: 66.42.87.243

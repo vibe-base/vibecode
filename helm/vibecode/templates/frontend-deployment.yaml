@@ -26,3 +26,17 @@ spec:
         env:
         - name: API_URL
           value: /api
+        - name: VITE_GITHUB_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: vibecode-github-oauth
+              key: GITHUB_CLIENT_ID
+        - name: VITE_GITHUB_REDIRECT_URI
+          value: "https://vibecode.gigahard.ai/github-callback"
+        - name: VITE_GOOGLE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "vibecode.fullname" . }}-google-oauth
+              key: GOOGLE_CLIENT_ID
+        - name: VITE_GOOGLE_REDIRECT_URI
+          value: "https://vibecode.gigahard.ai/google-callback"

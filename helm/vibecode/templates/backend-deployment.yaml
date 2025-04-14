@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+      {{- include "vibecode.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: backend
+        {{- include "vibecode.selectorLabels" . | nindent 8 }}
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+      - name: backend
+        image: gigahard/vibecode-fastapi:latest  # Changed from vibecode-backend to vibecode-fastapi
+        imagePullPolicy: Always
+        ports:
+        - containerPort: {{ .Values.backend.port }}
+        env:
+        - name: GITHUB_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "vibecode.fullname" . }}-github-oauth
+              key: GITHUB_CLIENT_ID
+        - name: GITHUB_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "vibecode.fullname" . }}-github-oauth
+              key: GITHUB_CLIENT_SECRET
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "vibecode.fullname" . }}-github-oauth
+              key: JWT_SECRET

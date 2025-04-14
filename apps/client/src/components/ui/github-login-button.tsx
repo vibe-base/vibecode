@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
 interface GitHubLoginButtonProps {
@@ -7,15 +6,21 @@ interface GitHubLoginButtonProps {
 }
 
 export function GitHubLoginButton({ className }: GitHubLoginButtonProps) {
-  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async () => {
+  const handleLogin = () => {
     try {
       setIsLoading(true);
-      await login();
+
+      // Use our backend API to initiate the GitHub OAuth flow
+      // Make sure to use the full URL to avoid any path resolution issues
+      const apiUrl = 'https://vibecode.gigahard.ai/api/auth/github';
+      console.log(`Redirecting to GitHub OAuth: ${apiUrl}`);
+
+      // Open in the same window
+      window.location.href = apiUrl;
     } catch (error) {
-      console.error('Failed to login:', error);
+      console.error('Failed to redirect to GitHub:', error);
       setIsLoading(false);
     }
   };

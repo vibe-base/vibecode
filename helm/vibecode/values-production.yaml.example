@@ -10,12 +10,13 @@ imagePullSecrets:
 
 # Ingress Configuration
 ingress:
-  host: your-domain.com
+  host: vibecode.gigahard.ai
 
 # GitHub OAuth Configuration
 github:
   clientId: "your-github-client-id"
   clientSecret: "your-github-client-secret"
+  jwtSecret: "your-production-jwt-secret-key-for-tokens"  # Make sure to use a strong secret in production
 
 # Database Configuration
 database:

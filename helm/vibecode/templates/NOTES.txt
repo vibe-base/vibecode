@@ -12,18 +12,9 @@ This deployment is using the existing Longhorn StorageClass "{{ .Values.longhorn
 To access the Longhorn UI:
 
   $ kubectl port-forward -n longhorn-system svc/longhorn-frontend 8000:80
-
-Then access http://localhost:8000 in your browser.
 {{- end }}
 
-{{- if .Values.ingress.enabled }}
-Your application should be available at:
-  https://{{ .Values.domain }}
-
-Traefik is configured to automatically obtain and manage TLS certificates
-using the Let's Encrypt certificate resolver.
-{{- else }}
-Your application is not exposed via Ingress. To access it, you need to:
-  $ kubectl port-forward svc/frontend 8080:{{ .Values.frontend.port }}
-Then access http://localhost:8080 in your browser.
+Your application is available at:
+{{- range .Values.ingress.hosts }}
+  https://{{ . }}
 {{- end }}

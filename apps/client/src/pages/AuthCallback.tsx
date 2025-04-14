@@ -1,103 +1,104 @@
-import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/lib/auth';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/lib/auth';
 
 export default function AuthCallback() {
-  const { isAuthenticated, isLoading, user } = useAuth();
   const navigate = useNavigate();
-  const [exchanging, setExchanging] = useState(false);
+  const { setUser, setToken } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Handle GitHub code exchange
   useEffect(() => {
-    console.log('AuthCallback rendered');
+    const code = new URLSearchParams(window.location.search).get('code');
 
-    // Check URL parameters
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
+    if (!code) {
+      setError('No authorization code received');
+      setIsLoading(false);
+      return;
+    }
 
-    console.log('GitHub code in URL:', code ? code : 'not present');
-    console.log('Full URL:', window.location.href);
-
-    // Function to exchange code for token
-    const exchangeCodeForToken = async (code: string) => {
+    const exchangeCode = async () => {
       try {
-        setExchanging(true);
         console.log('Exchanging GitHub code for token');
 
-        // Use the GitHub callback URL from environment variables or fallback to the current origin
-        const githubCallbackUrl = import.meta.env.VITE_GITHUB_CALLBACK_URL || `${window.location.origin}/api/auth/github/exchange`;
-        const backendUrl = `${githubCallbackUrl}?code=${code}`;
-        console.log(`Using GitHub callback URL: ${githubCallbackUrl}`);
-        console.log(`Calling backend API: ${backendUrl}`);
-
-        const response = await fetch(backendUrl, {
-          method: 'GET',
+        // Send the code to our backend API
+        const response = await fetch('/api/auth/github/callback', {
+          method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             'Accept': 'application/json',
           },
-          mode: 'cors',  // Explicitly set CORS mode
-          // Don't include credentials for now to avoid CORS issues
-          // credentials: 'include',
+          body: JSON.stringify({ code }),
         });
 
         if (!response.ok) {
+          console.error(`Server error: ${response.status}`);
           const errorText = await response.text();
-          console.error(`Server error: ${response.status} - ${errorText}`);
-          throw new Error(`Server error: ${response.status} - ${errorText}`);
+          console.error(`Response body: ${errorText}`);
+          throw new Error(`Authentication failed: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        console.log('Received token from backend:', data);
+        // Try to parse the response as JSON
+        let data;
+        try {
+          data = await response.json();
+          console.log('Received token response:', data);
+        } catch (jsonError) {
+          console.error('Failed to parse JSON response:', jsonError);
+          throw new Error('Invalid response format from server');
+        }
 
-        // Save token to localStorage
-        localStorage.setItem('auth_token', data.access_token);
+        if (!data.token) {
+          throw new Error('No token received from server');
+        }
 
-        // Navigate to the home page
-        window.location.href = '/';
-      } catch (error) {
-        console.error('Error calling backend API:', error);
-        setError(`Error: ${error instanceof Error ? error.message : String(error)}`);
-      } finally {
-        setExchanging(false);
+        // Store the token and user data
+        localStorage.setItem('token', data.token);
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
+
+        // Update auth context
+        setToken(data.token);
+        setUser(data.user);
+
+        // Redirect to home page
+        navigate('/', { replace: true });
+      } catch (err) {
+        console.error('Authentication error:', err);
+        setError(err instanceof Error ? err.message : 'Authentication failed');
+        setIsLoading(false);
       }
     };
 
-    // Exchange code for token if we have a code
-    if (code && !isAuthenticated && !exchanging) {
-      exchangeCodeForToken(code);
-    } else if (!code && !isLoading && !isAuthenticated) {
-      // If we don't have a code and we're not authenticated, redirect to home
-      navigate('/');
-    }
-  }, [isAuthenticated, isLoading, navigate]);
+    exchangeCode();
+  }, [navigate, setToken, setUser]);
 
-  // Render loading or error state
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="max-w-md w-full p-6 text-center">
+          <h1 className="text-2xl font-bold mb-4">Authentication Failed</h1>
+          <p className="text-red-500 mb-4">{error}</p>
+          <button
+            onClick={() => navigate('/login')}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+          >
+            Return to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-2xl font-bold">GitHub Authentication</h1>
-        {error ? (
-          <div className="mt-4 text-red-500">
-            <p>Authentication failed</p>
-            <p className="text-sm mt-2">{error}</p>
-            <button
-              onClick={() => navigate('/')}
-              className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-md"
-            >
-              Return to Home
-            </button>
-          </div>
-        ) : (
-          <div>
-            <p className="mt-2 text-muted-foreground">Please wait while we log you in...</p>
-            <p className="mt-2 text-sm text-gray-500">
-              Status: {exchanging ? 'Exchanging code for token...' :
-                      isLoading ? 'Loading user data...' :
-                      isAuthenticated ? 'Authenticated!' : 'Waiting...'}
-            </p>
-          </div>
-        )}
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="max-w-md w-full p-6 text-center">
+        <h1 className="text-2xl font-bold mb-4">GitHub Authentication</h1>
+        <div className="flex justify-center mb-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </div>
+        <p className="text-muted-foreground">Connecting to GitHub...</p>
       </div>
     </div>
   );

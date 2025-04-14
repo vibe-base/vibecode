@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Authentication</title>
+    <script>
+        // Function to get URL parameters
+        function getUrlParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const pairs = queryString.split('&');
+
+            for (const pair of pairs) {
+                const [key, value] = pair.split('=');
+                params[decodeURIComponent(key)] = decodeURIComponent(value || '');
+            }
+
+            return params;
+        }
+
+        // Function to handle GitHub authentication
+        function handleGitHubAuth() {
+            const params = getUrlParams();
+            const code = params.code;
+
+            if (!code) {
+                window.location.href = '/?error=no_code';
+                return;
+            }
+
+            // Update status message
+            document.getElementById('status-message').textContent = 'Exchanging code for token...';
+
+            // Create a form to submit the code to the server
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/api/express/auth/github/exchange';
+
+            const codeInput = document.createElement('input');
+            codeInput.type = 'hidden';
+            codeInput.name = 'code';
+            codeInput.value = code;
+
+            form.appendChild(codeInput);
+            document.body.appendChild(form);
+
+            // Submit the form
+            form.submit();
+        }
+
+        // Run the authentication handler when the page loads
+        window.onload = handleGitHubAuth;
+    </script>
+</head>
+<body>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;">
+        <h1>Authenticating with GitHub...</h1>
+        <div style="margin-top: 20px; border: 4px solid #ccc; border-top: 4px solid #3498db; border-radius: 50%; width: 30px; height: 30px; animation: spin 2s linear infinite;"></div>
+        <p style="margin-top: 20px;">Please wait while we complete your authentication...</p>
+        <p id="status-message" style="margin-top: 10px; color: #3498db;">Initializing authentication...</p>
+    </div>
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</body>
+</html>

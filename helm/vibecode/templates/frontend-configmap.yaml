@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-env
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/managed-by: Helm
+    {{- include "vibecode.labels" . | nindent 4 }}
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: {{ .Release.Namespace }}
+data:
+  VITE_API_URL: "/api"
+  VITE_GITHUB_CALLBACK_URL: "/github-callback"
+  VITE_GITHUB_CLIENT_ID: {{ .Values.github.clientId | quote }}

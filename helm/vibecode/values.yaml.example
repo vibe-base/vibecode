@@ -16,6 +16,7 @@ ingress:
 github:
   clientId: "your-github-client-id"
   clientSecret: "your-github-client-secret"
+  jwtSecret: "your-jwt-secret-key-for-tokens"
 
 # Database Configuration
 database:

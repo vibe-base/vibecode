@@ -25,19 +25,16 @@ export default function AuthCallback() {
         setExchanging(true);
         console.log('Exchanging GitHub code for token');
 
-        // Use a hardcoded URL for testing
-        const backendUrl = `http://localhost:8000/api/auth/github/exchange?code=${code}`;
-        console.log(`Using hardcoded backend URL: ${backendUrl}`);
-        console.log(`Calling backend API: ${backendUrl}`);
+        // Update to correct FastAPI endpoint
+        const backendUrl = `http://localhost:8000/api/fastapi/auth/github/exchange?code=${code}`;
+        console.log(`Using backend URL: ${backendUrl}`);
 
         const response = await fetch(backendUrl, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
           },
-          mode: 'cors',  // Explicitly set CORS mode
-          // Don't include credentials for now to avoid CORS issues
-          // credentials: 'include',
+          mode: 'cors',
         });
 
         if (!response.ok) {

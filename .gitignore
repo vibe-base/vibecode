@@ -43,6 +43,10 @@ helm/**/values*.yaml
 !helm/**/values-production.yaml.example
 charts/*/charts/
 charts/*/requirements.lock
+/helm/vibecode/values
+helm/vibecode/values/
+helm/vibecode/values/*
+helm/vibecode/values.yaml
 
 # Build and Dependencies
 node_modules/
@@ -196,8 +200,7 @@ apps/*/*.local.*
 .values
 .values.*
 *.values
-*.values.*
-apps/client.zip
+*.values.* 
 *.zip
 
 # Database files
