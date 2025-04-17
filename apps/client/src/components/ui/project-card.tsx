@@ -1,7 +1,14 @@
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon, CodeIcon, UsersIcon } from '@/components/ui/lucide-icons';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "./card"
+import { Button } from './button';
+import { CalendarIcon, CodeIcon, UsersIcon } from './lucide-icons';
 
 export interface Project {
   id: string;

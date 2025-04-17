@@ -1,31 +1,73 @@
+{{- if .Values.fastapi.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: fastapi
+  name: {{ .Release.Name }}-fastapi
+  namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "vibecode.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}
+    component: fastapi
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: fastapi
+      app: {{ .Release.Name }}-fastapi
   template:
     metadata:
       labels:
-        app: fastapi
-        {{- include "vibecode.selectorLabels" . | nindent 8 }}
+        app: {{ .Release.Name }}-fastapi
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}-fastapi
-          image: {{ .Values.fastapi.image }}
-          imagePullPolicy: {{ .Values.fastapi.pullPolicy }}
+        - name: fastapi
+          image: {{ .Values.fastapi.image.repository }}:{{ .Values.fastapi.image.tag }}
+          imagePullPolicy: {{ .Values.fastapi.image.pullPolicy }}
           ports:
-            - name: http
-              containerPort: {{ .Values.fastapi.port }}
-              protocol: TCP
+            - containerPort: 8000
+          env:
+            - name: POSTGRES_SERVER
+              value: {{ .Release.Name }}-postgresql
+            - name: POSTGRES_USER
+              value: {{ .Values.postgresql.auth.username }}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-postgresql
+                  key: postgres-password
+            - name: POSTGRES_DB
+              value: {{ .Values.postgresql.auth.database }}
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: github-client-id
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: github-client-secret
+            - name: GITHUB_REDIRECT_URI
+              value: {{ .Values.fastapi.githubRedirectUri }}
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: secret-key
           resources:
-            {{- toYaml .Values.fastapi.resources | nindent 12 }}
+            {{- toYaml .Values.fastapi.resources | nindent 10 }}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+{{- end }}

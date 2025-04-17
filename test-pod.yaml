@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-pod
+  namespace: vibecode
+spec:
+  containers:
+  - name: test-container
+    image: node:18-alpine
+    command: ["sh", "-c"]
+    args:
+    - |
+      echo 'const axios = require("axios");
+
+      // Function to test the /api/projects endpoint
+      async function testProjectsEndpoint() {
+        try {
+          console.log("Testing /api/projects endpoint...");
+          
+          // Make a request to the /api/projects endpoint
+          const response = await axios.get("http://express:5000/api/projects");
+          
+          console.log("Response status:", response.status);
+          console.log("Response data:", response.data);
+          
+          return response.data;
+        } catch (error) {
+          console.error("Error testing /api/projects endpoint:", error.message);
+          if (error.response) {
+            console.error("Response status:", error.response.status);
+            console.error("Response data:", error.response.data);
+          }
+          throw error;
+        }
+      }
+
+      // Run the test
+      testProjectsEndpoint()
+        .then(data => {
+          console.log("Test completed successfully");
+          process.exit(0);
+        })
+        .catch(error => {
+          console.error("Test failed:", error.message);
+          process.exit(1);
+        });' > /app/test.js
+      cd /app
+      npm init -y
+      npm install axios
+      node test.js
+    volumeMounts:
+    - name: app-volume
+      mountPath: /app
+  volumes:
+  - name: app-volume
+    emptyDir: {}

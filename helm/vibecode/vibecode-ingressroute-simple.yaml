@@ -1,0 +1,28 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vibecode-ingressroute
+  namespace: vibecode
+spec:
+  entryPoints:
+    - websecure
+  tls:
+    certResolver: letsencrypt
+    domains:
+      - main: "0192.ai"
+  routes:
+    - match: Host(`0192.ai`) && PathPrefix(`/`)
+      kind: Rule
+      services:
+        - name: frontend
+          port: 3000
+    - match: Host(`0192.ai`) && PathPrefix(`/api`)
+      kind: Rule
+      services:
+        - name: express
+          port: 5000
+    - match: Host(`0192.ai`) && PathPrefix(`/fastapi`)
+      kind: Rule
+      services:
+        - name: fastapi
+          port: 8000

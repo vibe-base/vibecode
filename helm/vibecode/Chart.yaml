@@ -16,3 +16,7 @@ dependencies:
     version: 1.5.1
     repository: https://charts.longhorn.io
     condition: longhorn.enabled
+  - name: postgresql
+    version: 12.5.8
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled

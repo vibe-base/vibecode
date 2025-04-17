@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-projects
+  namespace: vibecode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-projects
+  template:
+    metadata:
+      labels:
+        app: mock-projects
+    spec:
+      containers:
+      - name: mock-projects
+        image: gigahard/mock-projects:latest
+        ports:
+        - containerPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-projects
+  namespace: vibecode
+spec:
+  selector:
+    app: mock-projects
+  ports:
+  - port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mock-projects-ingress
+  namespace: vibecode
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.priority: "10000"  # Extremely high priority
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: 0192.ai
+    http:
+      paths:
+      - path: /api/projects
+        pathType: Prefix
+        backend:
+          service:
+            name: mock-projects
+            port:
+              number: 80

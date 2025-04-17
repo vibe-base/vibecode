@@ -1,0 +1,45 @@
+deployment:
+  kind: Deployment
+  hostNetwork: true
+  nodeSelector:
+    kubernetes.io/hostname: vibecode2
+
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+
+additionalArguments:
+  - "--log.level=DEBUG"
+  - "--providers.kubernetesingress"
+  - "--providers.kubernetescrd"
+  - "--entrypoints.web.address=:80"
+  - "--entrypoints.websecure.address=:443"
+  - "--certificatesresolvers.letsencrypt.acme.email=admin@gigahard.ai"
+  - "--certificatesresolvers.letsencrypt.acme.storage=/tmp/acme.json"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+  - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+
+ports:
+  web:
+    port: 80
+    expose:
+      default: true
+    exposedPort: 80
+    protocol: TCP
+  websecure:
+    port: 443
+    expose:
+      default: true
+    exposedPort: 443
+    protocol: TCP
+
+service:
+  enabled: true
+  type: NodePort
+  spec: {}
+  nodePorts:
+    web: 30080
+    websecure: 30443
+
+persistence:
+  enabled: false

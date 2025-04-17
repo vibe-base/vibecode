@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi
+  namespace: vibecode
+  labels:
+    app: fastapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fastapi
+  template:
+    metadata:
+      labels:
+        app: fastapi
+    spec:
+      containers:
+      - name: fastapi
+        image: gigahard/vibecode-fastapi:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: POSTGRES_SERVER
+          value: vibecode-db
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: vibecode-db-credentials
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: vibecode-db-credentials
+              key: password
+        - name: POSTGRES_DB
+          value: vibecode
+        - name: GITHUB_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: vibecode-github-oauth
+              key: GITHUB_CLIENT_ID
+        - name: GITHUB_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: vibecode-github-oauth
+              key: GITHUB_CLIENT_SECRET
+        - name: GITHUB_REDIRECT_URI
+          value: "https://vibecode.gigahard.ai/github-callback"
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: vibecode-secrets
+              key: SECRET_KEY
+              optional: true
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+        readinessProbe:
+          httpGet:
+            path: /api/fastapi/health
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        livenessProbe:
+          httpGet:
+            path: /api/fastapi/health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 60

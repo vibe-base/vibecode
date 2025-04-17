@@ -1,0 +1,17 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: http-to-https
+  namespace: kube-system
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`vibecode.gigahard.ai`) || Host(`0192.ai`)
+      kind: Rule
+      middlewares:
+        - name: redirect-https
+          namespace: kube-system
+      services:
+        - name: noop@internal
+          kind: TraefikService

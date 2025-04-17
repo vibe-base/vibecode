@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vibecode-tls
+  namespace: vibecode
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
+spec:
+  secretName: vibecode-tls
+  dnsNames:
+    - vibecode.gigahard.ai
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer 

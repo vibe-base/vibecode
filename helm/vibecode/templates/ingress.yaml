@@ -5,17 +5,25 @@ metadata:
   namespace: vibecode
   annotations:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
     traefik.ingress.kubernetes.io/router.tls.certresolver: letsencrypt
-    traefik.ingress.kubernetes.io/router.priority: "100"
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
 spec:
-  ingressClassName: traefik
   tls:
     - hosts:
         - vibecode.gigahard.ai
+      secretName: vibecode-tls
   rules:
     - host: vibecode.gigahard.ai
       http:
         paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 3000
           - path: /api/express
             pathType: Prefix
             backend:
@@ -37,6 +45,13 @@ spec:
                 name: express
                 port:
                   number: 5000
+          - path: /auth/google/callback
+            pathType: Exact
+            backend:
+              service:
+                name: express
+                port:
+                  number: 5000
           - path: /api/fastapi
             pathType: Prefix
             backend:
@@ -44,10 +59,10 @@ spec:
                 name: fastapi
                 port:
                   number: 8000
-          - path: /
+          - path: /api/projects
             pathType: Prefix
             backend:
               service:
-                name: frontend
+                name: fastapi
                 port:
-                  number: 3000
+                  number: 8000 

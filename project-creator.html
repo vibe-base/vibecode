@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeCode Project Creator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>VibeCode Project Creator</h1>
+    <p>This tool helps you create projects directly in the database without using the API.</p>
+    
+    <div class="form-group">
+        <label for="projectName">Project Name:</label>
+        <input type="text" id="projectName" placeholder="Enter project name" required>
+    </div>
+    
+    <div class="form-group">
+        <label for="projectDesc">Project Description:</label>
+        <textarea id="projectDesc" placeholder="Enter project description" rows="3"></textarea>
+    </div>
+    
+    <div class="form-group">
+        <label for="projectLang">Programming Language:</label>
+        <select id="projectLang">
+            <option value="Python">Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Java">Java</option>
+            <option value="C#">C#</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Ruby">Ruby</option>
+            <option value="PHP">PHP</option>
+        </select>
+    </div>
+    
+    <button id="createBtn">Create Project</button>
+    
+    <div id="result" class="result"></div>
+    
+    <script>
+        document.getElementById('createBtn').addEventListener('click', function() {
+            const projectName = document.getElementById('projectName').value.trim();
+            const projectDesc = document.getElementById('projectDesc').value.trim();
+            const projectLang = document.getElementById('projectLang').value;
+            
+            if (!projectName) {
+                alert('Please enter a project name');
+                return;
+            }
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Creating project...</p>';
+            resultDiv.style.display = 'block';
+            
+            // Create a command to run the helper script
+            const command = `./create-project-helper.sh "${projectName}" "${projectDesc}" "${projectLang}"`;
+            
+            // Display the command (in a real app, you would execute this on the server)
+            resultDiv.innerHTML = `
+                <p>To create this project, run the following command in your terminal:</p>
+                <pre>${command}</pre>
+                <p class="success">After running the command, refresh the projects page to see your new project.</p>
+            `;
+        });
+    </script>
+</body>
+</html>

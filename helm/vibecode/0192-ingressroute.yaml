@@ -1,0 +1,56 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: 0192-ingressroute
+  namespace: vibecode
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`0192.ai`) && PathPrefix(`/`)
+      kind: Rule
+      services:
+        - name: frontend
+          port: 3000
+    - match: Host(`0192.ai`) && PathPrefix(`/api/projects`)
+      kind: Rule
+      services:
+        - name: fastapi
+          port: 8000
+    - match: Host(`0192.ai`) && PathPrefix(`/api/projects/create-no-auth`)
+      kind: Rule
+      services:
+        - name: fastapi
+          port: 8000
+    - match: Host(`0192.ai`) && PathPrefix(`/api/projects/create-test`)
+      kind: Rule
+      services:
+        - name: fastapi
+          port: 8000
+    - match: Host(`0192.ai`) && PathPrefix(`/api/fastapi/projects`)
+      kind: Rule
+      services:
+        - name: fastapi
+          port: 8000
+    - match: Host(`0192.ai`) && PathPrefix(`/api/projects/create-test`)
+      kind: Rule
+      services:
+        - name: fastapi
+          port: 8000
+    - match: Host(`0192.ai`) && PathPrefix(`/api`)
+      kind: Rule
+      services:
+        - name: express
+          port: 5000
+    - match: Host(`0192.ai`) && PathPrefix(`/api/fastapi`)
+      kind: Rule
+      services:
+        - name: fastapi
+          port: 8000
+    - match: Host(`0192.ai`) && PathPrefix(`/api/test/create-project`)
+      kind: Rule
+      services:
+        - name: fastapi
+          port: 8000
+  tls:
+    certResolver: letsencrypt

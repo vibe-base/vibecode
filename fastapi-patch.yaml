@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fastapi
+  namespace: vibecode
+spec:
+  template:
+    spec:
+      containers:
+      - name: fastapi
+        env:
+        - name: DISABLE_AUTH
+          value: "true"

@@ -16,7 +16,7 @@ spec:
         app: frontend
     spec:
       containers:
-      - name: vibecode-frontend
+      - name: frontend
         image: gigahard/vibecode-client:latest
         imagePullPolicy: Always
         ports:

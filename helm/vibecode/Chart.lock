@@ -2,5 +2,11 @@ dependencies:
 - name: longhorn
   repository: https://charts.longhorn.io
   version: 1.5.1
-digest: sha256:f27d7f2d9849ba73780233495b5fdc3757b0a9047986dd3c33c78ed3483c98df
-generated: "2025-04-12T19:33:16.965813-07:00"
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 12.5.8
+- name: cert-manager
+  repository: https://charts.jetstack.io
+  version: v1.13.2
+digest: sha256:c56af764d8a6c9032f9b5a8a65c3d2e8f09cfef9dc38a509a7526b32aea0f10a
+generated: "2025-04-14T23:54:40.043908-07:00"

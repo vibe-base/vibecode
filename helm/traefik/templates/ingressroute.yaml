@@ -1,0 +1,16 @@
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: vibecode-ingressroute
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`vibecode.gigahard.ai`)
+      kind: Rule
+      services:
+        - name: kubernetes
+          port: 443
+  tls:
+    certResolver: letsencrypt 

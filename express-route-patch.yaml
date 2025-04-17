@@ -1,0 +1,13 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: express
+  namespace: vibecode
+spec:
+  template:
+    spec:
+      containers:
+      - name: express
+        env:
+        - name: GOOGLE_REDIRECT_URI
+          value: https://0192.ai/accounts/google/login/callback/

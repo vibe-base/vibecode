@@ -39,11 +39,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('AuthProvider useEffect running');
 
-    // Check if we have a token in localStorage
-    const token = localStorage.getItem('token');
+    // Check if we have a token in localStorage (try different possible keys)
+    const token = localStorage.getItem('token') ||
+                 localStorage.getItem('accessToken') ||
+                 localStorage.getItem('auth_token');
     console.log('Token from localStorage:', token ? 'exists' : 'not found');
 
     if (token) {
+      // Store the token under all possible keys for compatibility
+      localStorage.setItem('token', token);
+      localStorage.setItem('auth_token', token);
+
       // Fetch user data from API
       console.log('Fetching user data with token from localStorage');
       fetchUserData(token);

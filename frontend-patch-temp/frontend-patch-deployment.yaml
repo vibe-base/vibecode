@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: vibecode
+spec:
+  template:
+    spec:
+      containers:
+      - name: frontend
+        image: gigahard/vibecode-frontend-patched:latest
+        volumeMounts:
+        - name: patch-script
+          mountPath: /usr/share/nginx/html/patch.js
+          subPath: patch.js
+      volumes:
+      - name: patch-script
+        configMap:
+          name: frontend-patch

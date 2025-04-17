@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../lib/theme';
 import { ActivityBar } from './activity-bar';
 import { Sidebar } from './sidebar';
 import { Editor } from './editor';
 import { StatusBar } from './status-bar';
 import { cn } from '../../lib/utils';
+import { useLocation } from 'react-router-dom';
 
 interface VSCodeLayoutProps {
   children?: React.ReactNode;
@@ -12,8 +13,15 @@ interface VSCodeLayoutProps {
 
 export function VSCodeLayout({ children }: VSCodeLayoutProps) {
   const { mode } = useTheme();
+  const location = useLocation();
   const [activeView, setActiveView] = useState<'explorer' | 'search' | 'git' | 'debug' | 'extensions'>('explorer');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [key, setKey] = useState(0); // Add a key to force re-render
+
+  // Force re-render when location changes
+  useEffect(() => {
+    setKey(prevKey => prevKey + 1);
+  }, [location.pathname]);
 
   // VS Code theme colors based on our existing theme modes
   const themeColors = {
@@ -42,25 +50,26 @@ export function VSCodeLayout({ children }: VSCodeLayoutProps) {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <div className="flex flex-1 overflow-hidden">
-        <ActivityBar 
-          activeView={activeView} 
+        <ActivityBar
+          activeView={activeView}
           setActiveView={setActiveView}
           setSidebarOpen={setSidebarOpen}
           className={colors.activityBar}
         />
-        
+
         {sidebarOpen && (
-          <Sidebar 
+          <Sidebar
             activeView={activeView}
             className={cn('w-64 border-r border-[#474747]', colors.sidebar)}
           />
         )}
-        
+
         <Editor className={cn('flex-1', colors.editor)}>
+          {/* Render children directly without the key-based div wrapper */}
           {children}
         </Editor>
       </div>
-      
+
       <StatusBar className={colors.statusBar} />
     </div>
   );

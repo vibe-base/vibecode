@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: vibecode-tls
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: vibecode-tls
+  dnsNames:
+    - {{ .Values.ingress.host }}
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer 
