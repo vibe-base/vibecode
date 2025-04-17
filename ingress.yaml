@@ -1,0 +1,44 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"networking.k8s.io/v1","kind":"Ingress","metadata":{"annotations":{"traefik.ingress.kubernetes.io/router.entrypoints":"websecure","traefik.ingress.kubernetes.io/router.middlewares":"kube-system-redirect-https@kubernetescrd","traefik.ingress.kubernetes.io/router.tls":"true"},"name":"vibecode-0192-ingress","namespace":"vibecode"},"spec":{"ingressClassName":"traefik","rules":[{"host":"0192.ai","http":{"paths":[{"backend":{"service":{"name":"frontend","port":{"number":3000}}},"path":"/","pathType":"Prefix"},{"backend":{"service":{"name":"express","port":{"number":5000}}},"path":"/api","pathType":"Prefix"},{"backend":{"service":{"name":"fastapi","port":{"number":8000}}},"path":"/fastapi","pathType":"Prefix"}]}}]}}
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: kube-system-redirect-https@kubernetescrd
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  creationTimestamp: "2025-04-16T19:50:02Z"
+  generation: 1
+  name: vibecode-0192-ingress
+  namespace: vibecode
+  resourceVersion: "641077"
+  uid: e8686eab-2147-4cbd-aba2-dafd3233889c
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: 0192.ai
+    http:
+      paths:
+      - backend:
+          service:
+            name: frontend
+            port:
+              number: 3000
+        path: /
+        pathType: Prefix
+      - backend:
+          service:
+            name: express
+            port:
+              number: 5000
+        path: /api
+        pathType: Prefix
+      - backend:
+          service:
+            name: fastapi
+            port:
+              number: 8000
+        path: /fastapi
+        pathType: Prefix
+status:
+  loadBalancer: {}

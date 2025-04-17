@@ -4,8 +4,9 @@ import { ActivityBar } from './activity-bar';
 import { Sidebar } from './sidebar';
 import { Editor } from './editor';
 import { StatusBar } from './status-bar';
+import { ContainerPanel } from './container-panel';
 import { cn } from '../../lib/utils';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useParams } from 'react-router-dom';
 
 interface VSCodeLayoutProps {
   children?: React.ReactNode;
@@ -14,8 +15,10 @@ interface VSCodeLayoutProps {
 export function VSCodeLayout({ children }: VSCodeLayoutProps) {
   const { mode } = useTheme();
   const location = useLocation();
-  const [activeView, setActiveView] = useState<'explorer' | 'search' | 'git' | 'debug' | 'extensions'>('explorer');
+  const { projectId } = useParams<{ projectId: string }>();
+  const [activeView, setActiveView] = useState<'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'docker'>('explorer');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [showContainerPanel, setShowContainerPanel] = useState(true);
   const [key, setKey] = useState(0); // Add a key to force re-render
 
   // Force re-render when location changes
@@ -64,10 +67,17 @@ export function VSCodeLayout({ children }: VSCodeLayoutProps) {
           />
         )}
 
-        <Editor className={cn('flex-1', colors.editor)}>
-          {/* Render children directly without the key-based div wrapper */}
-          {children}
-        </Editor>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <Editor className={cn('flex-1', colors.editor)}>
+            {/* Render children directly without the key-based div wrapper */}
+            {children}
+          </Editor>
+
+          {/* Container Panel - only show if we have a projectId */}
+          {projectId && showContainerPanel && (
+            <ContainerPanel projectId={projectId} />
+          )}
+        </div>
       </div>
 
       <StatusBar className={colors.statusBar} />

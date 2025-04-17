@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { cn } from '../../lib/utils';
+import { DockerView } from './docker-view';
 
 interface SidebarProps {
-  activeView: 'explorer' | 'search' | 'git' | 'debug' | 'extensions';
+  activeView: 'explorer' | 'search' | 'git' | 'debug' | 'extensions' | 'docker';
   className?: string;
 }
 
@@ -14,6 +15,7 @@ export function Sidebar({ activeView, className }: SidebarProps) {
       {activeView === 'git' && <GitView />}
       {activeView === 'debug' && <DebugView />}
       {activeView === 'extensions' && <ExtensionsView />}
+      {activeView === 'docker' && <DockerView />}
     </div>
   );
 }
@@ -36,20 +38,20 @@ function ExplorerView() {
   return (
     <div className="p-2">
       <div className="text-sm font-semibold uppercase tracking-wider mb-2 px-2">Explorer</div>
-      
+
       <div className="mb-2">
         <div className="flex items-center px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10" onClick={() => toggleExpand('src')}>
           <span className="mr-1">{expanded['src'] ? '▼' : '►'}</span>
           <span className="font-medium">src</span>
         </div>
-        
+
         {expanded['src'] && (
           <div className="ml-4">
             <div className="flex items-center px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10" onClick={() => toggleExpand('components')}>
               <span className="mr-1">{expanded['components'] ? '▼' : '►'}</span>
               <span>components</span>
             </div>
-            
+
             {expanded['components'] && (
               <div className="ml-4">
                 <div className="px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10">
@@ -63,12 +65,12 @@ function ExplorerView() {
                 </div>
               </div>
             )}
-            
+
             <div className="flex items-center px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10" onClick={() => toggleExpand('pages')}>
               <span className="mr-1">{expanded['pages'] ? '▼' : '►'}</span>
               <span>pages</span>
             </div>
-            
+
             {expanded['pages'] && (
               <div className="ml-4">
                 <div className="px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10">
@@ -79,12 +81,12 @@ function ExplorerView() {
                 </div>
               </div>
             )}
-            
+
             <div className="flex items-center px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10" onClick={() => toggleExpand('lib')}>
               <span className="mr-1">{expanded['lib'] ? '▼' : '►'}</span>
               <span>lib</span>
             </div>
-            
+
             {expanded['lib'] && (
               <div className="ml-4">
                 <div className="px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10">
@@ -95,7 +97,7 @@ function ExplorerView() {
                 </div>
               </div>
             )}
-            
+
             <div className="px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10">
               <span className="text-blue-500">App.tsx</span>
             </div>
@@ -108,7 +110,7 @@ function ExplorerView() {
           </div>
         )}
       </div>
-      
+
       <div>
         <div className="px-2 py-1 cursor-pointer hover:bg-black hover:bg-opacity-10">
           <span className="text-amber-500">package.json</span>
@@ -129,9 +131,9 @@ function SearchView() {
     <div className="p-2">
       <div className="text-sm font-semibold uppercase tracking-wider mb-2 px-2">Search</div>
       <div className="px-2">
-        <input 
-          type="text" 
-          placeholder="Search in files" 
+        <input
+          type="text"
+          placeholder="Search in files"
           className="w-full p-1 bg-opacity-20 bg-black rounded border border-gray-600 text-sm mb-2"
         />
         <div className="text-xs text-gray-400 mb-4">No results found yet. Type to search.</div>
@@ -169,12 +171,12 @@ function ExtensionsView() {
     <div className="p-2">
       <div className="text-sm font-semibold uppercase tracking-wider mb-2 px-2">Extensions</div>
       <div className="px-2">
-        <input 
-          type="text" 
-          placeholder="Search extensions" 
+        <input
+          type="text"
+          placeholder="Search extensions"
           className="w-full p-1 bg-opacity-20 bg-black rounded border border-gray-600 text-sm mb-2"
         />
-        
+
         <div className="mb-2 p-2 border-b border-gray-700">
           <div className="font-medium">Installed</div>
           <div className="flex items-center py-2">
@@ -196,7 +198,7 @@ function ExtensionsView() {
             </div>
           </div>
         </div>
-        
+
         <div>
           <div className="font-medium">Recommended</div>
           <div className="flex items-center py-2">

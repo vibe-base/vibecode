@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const proxyRoutes = require('./src/routes/proxy');
 
 // Initialize Express app
 const app = express();
@@ -115,6 +116,14 @@ app.use(morgan((tokens, req, res) => {
     timestamp: new Date().toISOString()
   });
 }));
+
+// Add middleware to log all requests with more details
+app.use((req, res, next) => {
+  console.log(`CRITICAL DEBUG: Received request for ${req.method} ${req.originalUrl}`);
+  console.log(`CRITICAL DEBUG: Headers: ${JSON.stringify(req.headers)}`);
+  console.log(`CRITICAL DEBUG: Query params: ${JSON.stringify(req.query)}`);
+  next();
+});
 
 // GitHub OAuth route - redirects to GitHub
 app.get('/api/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
@@ -534,6 +543,216 @@ app.get('/api/express/auth/me', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Container endpoints are now handled directly in Express
+
+// Define container endpoints directly in Express
+const MOCK_CONTAINERS = {};
+
+// Container API endpoints
+app.post('/api/proxy/containers/:projectId/create', async (req, res) => {
+  const projectId = req.params.projectId;
+  console.log(`POST /api/proxy/containers/${projectId}/create - Creating container resources`);
+
+  // Create mock container resources
+  const containerResources = {
+    exists: true,
+    status: "Running",
+    running: true,
+    deployment: {
+      name: `deployment-${projectId}`,
+      available_replicas: 1,
+      total_replicas: 1
+    },
+    service: {
+      name: `service-${projectId}`,
+      cluster_ip: "10.42.0.123",
+      ports: [{port: 8080, target_port: 8080}]
+    },
+    pvc: {
+      name: `pvc-${projectId}`,
+      status: "Bound",
+      capacity: "1Gi"
+    },
+    pods: [
+      {
+        name: `pod-${projectId}-xyz123`,
+        status: "Running",
+        ready: true,
+        restart_count: 0,
+        age: "1h"
+      }
+    ]
+  };
+
+  // Store container resources
+  MOCK_CONTAINERS[projectId] = containerResources;
+
+  return res.json({
+    success: true,
+    message: `Created container resources for project ${projectId}`,
+    data: containerResources,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/proxy/containers/:projectId/status', async (req, res) => {
+  const projectId = req.params.projectId;
+  console.log(`GET /api/proxy/containers/${projectId}/status - Getting container status`);
+
+  // Check if container exists
+  if (projectId in MOCK_CONTAINERS) {
+    return res.json({
+      success: true,
+      message: `Retrieved status for project ${projectId}`,
+      data: MOCK_CONTAINERS[projectId],
+      timestamp: new Date().toISOString()
+    });
+  } else {
+    return res.json({
+      success: true,
+      message: `No container resources exist for project ${projectId}`,
+      data: {
+        exists: false,
+        status: "Not Created",
+        running: false
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+app.post('/api/proxy/containers/:projectId/action', async (req, res) => {
+  const projectId = req.params.projectId;
+  const actionType = req.body.action || "";
+  console.log(`POST /api/proxy/containers/${projectId}/action - Action: ${actionType}`);
+
+  // Check if container exists
+  if (actionType === "create") {
+    // Create mock container resources
+    const containerResources = {
+      exists: true,
+      status: "Running",
+      running: true,
+      deployment: {
+        name: `deployment-${projectId}`,
+        available_replicas: 1,
+        total_replicas: 1
+      },
+      service: {
+        name: `service-${projectId}`,
+        cluster_ip: "10.42.0.123",
+        ports: [{port: 8080, target_port: 8080}]
+      },
+      pvc: {
+        name: `pvc-${projectId}`,
+        status: "Bound",
+        capacity: "1Gi"
+      },
+      pods: [
+        {
+          name: `pod-${projectId}-xyz123`,
+          status: "Running",
+          ready: true,
+          restart_count: 0,
+          age: "1h"
+        }
+      ]
+    };
+
+    // Store container resources
+    MOCK_CONTAINERS[projectId] = containerResources;
+
+    return res.json({
+      success: true,
+      message: `Created container resources for project ${projectId}`,
+      data: containerResources,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  if (!(projectId in MOCK_CONTAINERS) && actionType !== "create") {
+    return res.json({
+      success: false,
+      message: `Container resources don't exist for project ${projectId}`,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  if (actionType === "start") {
+    MOCK_CONTAINERS[projectId].running = true;
+    MOCK_CONTAINERS[projectId].status = "Running";
+    return res.json({
+      success: true,
+      message: `Container for project ${projectId} started`,
+      data: MOCK_CONTAINERS[projectId],
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  else if (actionType === "stop") {
+    MOCK_CONTAINERS[projectId].running = false;
+    MOCK_CONTAINERS[projectId].status = "Stopped";
+    return res.json({
+      success: true,
+      message: `Container for project ${projectId} stopped`,
+      data: MOCK_CONTAINERS[projectId],
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  else if (actionType === "restart") {
+    MOCK_CONTAINERS[projectId].running = true;
+    MOCK_CONTAINERS[projectId].status = "Running";
+    return res.json({
+      success: true,
+      message: `Container for project ${projectId} restarted`,
+      data: MOCK_CONTAINERS[projectId],
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  else if (actionType === "logs") {
+    return res.json({
+      success: true,
+      message: `Retrieved logs for project ${projectId}`,
+      logs: "Hello from a container!\nThis is a mock log message.",
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  else if (actionType === "status") {
+    return res.json({
+      success: true,
+      message: `Retrieved status for project ${projectId}`,
+      data: MOCK_CONTAINERS[projectId],
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  else if (actionType === "delete") {
+    if (projectId in MOCK_CONTAINERS) {
+      delete MOCK_CONTAINERS[projectId];
+    }
+    return res.json({
+      success: true,
+      message: `Deleted container resources for project ${projectId}`,
+      timestamp: new Date().toISOString()
+    });
+  }
+
+  else {
+    return res.json({
+      success: false,
+      message: `Invalid action: ${actionType}. Valid actions are: create, start, stop, restart, logs, status, delete`,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Use proxy routes for FastAPI - AFTER our direct handlers
+// This will handle all other /api/proxy routes that are not container-related
+app.use('/api/proxy', proxyRoutes);
 
 // Start the server
 app.listen(PORT, () => {

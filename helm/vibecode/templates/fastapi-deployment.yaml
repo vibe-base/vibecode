@@ -17,6 +17,7 @@ spec:
       labels:
         app: {{ .Release.Name }}-fastapi
     spec:
+      serviceAccountName: fastapi-sa
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}

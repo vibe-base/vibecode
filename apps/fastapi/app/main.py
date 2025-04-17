@@ -6,7 +6,7 @@ from app.models.project import Project
 from app.core.init_db import init_db
 from app.core.auth import get_current_user, create_access_token
 from app.models.user import User
-from app.routers import auth, test, projects
+from app.routers import auth, test, projects, containers, test_containers, proxy_test_containers, mock_containers, exact_proxy_containers
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime, timedelta
@@ -31,6 +31,11 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(test.router)
 app.include_router(projects.router)
+app.include_router(containers.router)
+app.include_router(test_containers.router)
+app.include_router(proxy_test_containers.router)
+app.include_router(mock_containers.router)
+app.include_router(exact_proxy_containers.router)
 
 # Initialize database on startup
 @app.on_event("startup")
